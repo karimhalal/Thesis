@@ -1,14 +1,20 @@
 #load dependencies
-install.packages("yaml")
+# NOTE: Package installation should be done once in the console, not in a script.
+# install.packages(c("yaml", "dplyr", "cchsflow", "recodeflow", "here", "readxl"))
 library(yaml)
 library(dplyr)
 library(cchsflow)
 library(recodeflow)
+library(here)
+library(readxl)
 
 #define config.yaml file for use and load
 cchs_config<-yaml::yaml.load_file("config.yml", eval.expr= TRUE)
-variables_sheet<-read.csv("cchs_variables.csv")
-variables_details_sheet<-read.csv(variable_details)
+
+# Load variable sheets using the paths from the config file.
+# This ensures you are always using the correct, centrally-defined files.
+variables_sheet <- read.csv(cchs_config$default$variable$variable_names, fileEncoding = "UTF-8-BOM")
+variables_details_sheet <- read.csv(cchs_config$default$variable$variable_details)
 
 #create the study data
 create_study_data <- function(variables_sheet, variables_details_sheet, cchs_config) {
@@ -28,34 +34,37 @@ create_study_data <- function(variables_sheet, variables_details_sheet, cchs_con
     # Using the path, load the .RData file into the environment
     load(cchs_config$default$data[[data_name]], envir = data_env)
     
-    current_harmonized_data <- recodeflow::rec_with_table(
-      get(data_name, envir = data_env),
-      variables = variables_sheet,
+    # select variables to be processed
+    vars_to_process <- recodeflow:::select_vars_by_role(
+      roles = c("predictor", "table-1-a", "intermediate"), 
+      variables = variables_sheet # CORRECT: Use the function argument
+    )
+    
+    #use rec_with_tbl to create harmonized 
+    current_harmonized_data <- rec_with_table(
+      data = get(data_name, envir = data_env),
+      variables = vars_to_process,
       database_name = data_name,
       variable_details = variables_details_sheet,
-      id_role_name = "id",
-      custom_function_path = "R/custom-functions.R",
-      notes = FALSE,
+      custom_function_path = here::here("R", "special_functions.R"),
+      notes = FALSE
     )
+
     current_harmonized_data$SurveyCycle <- data_name
     
-    # If the harmonized_data has not been initialized then set to the
-    # current one.
-    # Otherwise row append the current one to the harmonize_data
+    # If the harmonized_data has not been initialized then set to the current one, if all data has been initialized, outappend new rows to existing data 
     if (is.null(harmonized_data)) {
       harmonized_data <- current_harmonized_data
     } else {
-      harmonized_data <-
-        dplyr::bind_rows(harmonized_data, current_harmonized_data)
+      harmonized_data <- dplyr::bind_rows(harmonized_data, current_harmonized_data)
     }
     
     rm(list = data_name, envir = data_env)
     
     print(paste("Done harmonization for", data_name))
   }
+  harmonized_data <- recodeflow::set_data_labels(
+    harmonized_data, variables_details_sheet, variables_sheet)
   
   return(harmonized_data)
 }
-
-
-'/Users/karimhalal/Desktop/The worlds greatest thesis/Thesis/worksheets/ cchs_variables.csv'
