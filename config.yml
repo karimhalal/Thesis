@@ -1,0 +1,11 @@
+default:
+  variable_type: ".csv"
+  variable:
+    variable_names: !expr here::here("worksheets", "od_variables.csv")
+    variable_details: !expr here::here("worksheets", "cchsflow_variables_details1.csv")
+  modules: NULL
+  data_type: ".RData"
+  data:
+    cchs2013_2014: !expr here::here("Data", "cchs2013_2014.RData")
+    cchs2015_2016: !expr here::here("Data", "cchs2015_2016.RData")
+    cchs2017_2018: !expr here::here("Data", "cchs2017_2018.RData")
