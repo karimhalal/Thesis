@@ -1,6 +1,4 @@
-#load dependencies
-# NOTE: Package installation should be done once in the console, not in a script.
-# install.packages(c("yaml", "dplyr", "cchsflow", "recodeflow", "here", "readxl"))
+#load necessary packages
 library(yaml)
 library(dplyr)
 library(cchsflow)
@@ -31,12 +29,13 @@ create_study_data <- function(variables_sheet, variables_details_sheet, cchs_con
     # Get the name of the current cchs dataset
     data_name <- data_names[[data_index]]
     print(paste("Start harmonization for", data_name))
+
     # Using the path, load the .RData file into the environment
     load(cchs_config$default$data[[data_name]], envir = data_env)
     
     # select variables to be processed
     vars_to_process <- recodeflow:::select_vars_by_role(
-      roles = c("predictor", "table-1-a", "intermediate"), 
+      roles = c("predictor", "table-1-a", "intermediate", "imputation-variable"), 
       variables = variables_sheet # CORRECT: Use the function argument
     )
     
@@ -52,7 +51,7 @@ create_study_data <- function(variables_sheet, variables_details_sheet, cchs_con
 
     current_harmonized_data$SurveyCycle <- data_name
     
-    # If the harmonized_data has not been initialized then set to the current one, if all data has been initialized, outappend new rows to existing data 
+    # If the harmonized_data has not been initialized then set to the current one, if all data has been initialized, append new rows to existing data 
     if (is.null(harmonized_data)) {
       harmonized_data <- current_harmonized_data
     } else {
@@ -63,8 +62,11 @@ create_study_data <- function(variables_sheet, variables_details_sheet, cchs_con
     
     print(paste("Done harmonization for", data_name))
   }
-  harmonized_data <- recodeflow::set_data_labels(
+  harmonized_data <- cchsflow::set_data_labels(
     harmonized_data, variables_details_sheet, variables_sheet)
   
   return(harmonized_data)
 }
+
+harmonized_data<-create_study_data(variables_sheet, variables_details_sheet, cchs_config)
+harmonized_data
