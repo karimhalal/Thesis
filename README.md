@@ -77,7 +77,7 @@ This directory contains human-readable files that provide metadata for the analy
 
 The project follows a modular, configuration-driven architecture that promotes clarity and reproducibility.
 
-![Architecture Diagram](https://i.imgur.com/2t4d3Zt.png)
+
 
 ### Workflow:
 
