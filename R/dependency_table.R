@@ -28,6 +28,22 @@ dplyr<-packrat:::recursivePackageDependencies("dplyr", ignore = "", lib.loc = .l
 tibble<-packrat:::recursivePackageDependencies("tibble", ignore = "", lib.loc = .libPaths()[1])
 stringr<-packrat:::recursivePackageDependencies("stringr", ignore = "", lib.loc = .libPaths()[1])
 
+
+c(
+  "tidyverse", "recodeflow", "mice", "gtsummary", "labelled",
+  "here", "fastDummies", "rms", "Hmisc", "tidylog", 
+  "cowplot", "glue", "janitor", "readxl", "writexl", "betareg", "tidymodels",
+  "cchsflow", "cmprsk", "survival", "dials", "config", "epitools", "flextable", "ftExtra", "glue",
+  "ggplot2", "here", "haven", "jsonlite", "kableExtra", "logger", "magrittr", "memoise", "devtools",
+  "tibble", "purrr", "config", "quarto", "pkgdown", "lintr", "stylr", "osfr", "parsnip", "pmsampsize",
+  "ranger", "rsample", "stringr", "targets", "utils", "xgboost", "yardstick", "DescTools", "survminer", "patchwork",
+  "tune", "dplyr"
+
+) |> 
+  purrr::map(.f = \(x) tools::package_dependencies(x, recursive = TRUE)) |> 
+  unlist(use.names = FALSE) |> 
+  unique() |> 
+  sort()
 #Create dependencies list
 deps_list<- list(ggplot2=ggplot2, survminer=survminer, tidyverse=tidyverse, haven=haven, magrittr=magrittr, DescTools=DescTools, yardstick=yardstick, patchwork=patchwork, tidyr=tidyr, survival=survival, mice=mice, 
 cchsflow=cchsflow, recodeflow=recodeflow, dials=dials, tune=tune, purrr=purrr, dplyr=dplyr, tibble=tibble, stringr=stringr)
