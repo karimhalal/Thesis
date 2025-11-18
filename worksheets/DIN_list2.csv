@@ -779,7 +779,7 @@
 "02465299","Belbuca","PFP","soluble film foil pk.","900mcg","2018-04-13","","buprenorphine hydrochloride","opioid- long term pain relief for moderate to severe pain","",0.039
 "02468085","Suboxone","IND","sl tab","12mg & 3mg","2018-05-11","","buprenorphine + naloxone","opioid- mainly used for opioid use disorder","",38.8
 "02468093","Suboxone","IND","sl tab","16mg & 4mg","2018-05-11","","buprenorphine + naloxone","opioid- mainly used for opioid use disorder","",38.8
-"02469650","NRA-Tramadol/ACET","NRA","tab","37.5mg & 325mg ","2022-04-29","","tramadol hydrochloride + acetaminophen","opioid- short-term acute pain management (<5 days supply)","",1
+"02469650","NRA-Tramadol/ACET","NRA","tab","37.5mg & 325mg","2022-04-29","","tramadol hydrochloride + acetaminophen","opioid- short-term acute pain management (<5 days supply)","",1
 "02470292","Foquest","PFP","cr cap","25mg","2018-01-26","","methylphenidate hydrochloride","stimulant- adhd medication","",NA
 "02470306","Foquest","PFP","cr cap","35mg","2018-01-26","","methylphenidate hydrochloride","stimulant- adhd medication","",NA
 "02470314","Foquest","PFP","cr cap","45mg","2018-01-26","","methylphenidate hydrochloride","stimulant- adhd medication","",NA
@@ -826,14 +826,14 @@
 "02533650","Apo-Methadone","APX","tab","5mg","2024-04-30","","methadone hydrochloride","opioid-  opioid use disorder","",4.7
 "02533669","Apo-Methadone","APX","tab","10mg","2024-04-30","","methadone hydrochloride","opioid-  opioid use disorder","",4.7
 "02533677","Apo-Methadone","APX","tab","25mg","2024-04-30","","methadone hydrochloride","opioid-  opioid use disorder","",4.7
-"02536943","PMS-Methylphenidate CR","PMS","er cap","10mg ","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
-"02536951","PMS-Methylphenidate CR","PMS","er cap","15mg ","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
-"02536978","PMS-Methylphenidate CR","PMS","er cap","20mg ","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
-"02536986","PMS-Methylphenidate CR","PMS","er cap","30mg ","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
-"02536994","PMS-Methylphenidate CR","PMS","er cap","40mg ","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
-"02537001","PMS-Methylphenidate CR","PMS","er cap","50mg ","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
+"02536943","PMS-Methylphenidate CR","PMS","er cap","10mg","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
+"02536951","PMS-Methylphenidate CR","PMS","er cap","15mg","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
+"02536978","PMS-Methylphenidate CR","PMS","er cap","20mg","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
+"02536986","PMS-Methylphenidate CR","PMS","er cap","30mg","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
+"02536994","PMS-Methylphenidate CR","PMS","er cap","40mg","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
+"02537001","PMS-Methylphenidate CR","PMS","er cap","50mg","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
 "02537028","PMS-Methylphenidate CR","PMS","er cap","60mg","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
-"02537036","PMS-Methylphenidate CR","PMS","er cap","80mg ","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
+"02537036","PMS-Methylphenidate CR","PMS","er cap","80mg","2023-12-29","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
 "02541602","Quillivant ER Chewable Tablets","KYE","er tab chewable","20mg","2024-08-30","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
 "02541610","Quillivant ER Chewable Tablets","KYE","er tab chewable","30mg","2024-08-30","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
 "02541629","Quillivant ER Chewable Tablets","KYE","er tab chewable","40mg","2024-08-30","","methylphenidate hydrochloride","stimulant- adhd medication and sometimes used for narcolepsy","",NA
@@ -913,9 +913,9 @@
 "09857617","Sandoz Morphine SR","SDZ","sr tab","200mg","2019-02-28","","morphine sulfate","opioid- long term pain relief for severe pain","",1
 "09857653","Doloral 1","LAA","o/l","1mg/mL","2021-03-29","","morphine hydrochloride","opioid- long term pain relief for severe pain","",1
 "09857654","Doloral 5","LAA","o/l","5mg/mL","2021-03-29","","morphine hydrochloride","opioid- long term pain relief for severe pain","",1
-"09858328","Apo-Methadone","APX","1mg","Tab","2024-04-30","","methadone hydrochloride","opioid- treatment of severe and chronic pain and sometimes substace use disorder","",4.7
-"09858329","Apo-Methadone","APX","5mg","Tab","2024-04-30","","methadone hydrochloride","opioid- treatment of severe and chronic pain and sometimes substace use disorder","",4.7
-"09858330","Apo-Methadone","APX","10mg","Tab","2024-04-30","","methadone hydrochloride","opioid- treatment of severe and chronic pain and sometimes substace use disorder","",4.7
-"09858331","Apo-Methadone","APX","25mg","Tab","2024-04-30","","methadone hydrochloride","opioid- treatment of severe and chronic pain and sometimes substace use disorder","",4.7
-"09858348","Sandoz Fentanyl Patch ","SDZ","12mcg/hr","Trans Patch","2024-09-27","","","","",NA
-"09858349","Teva-Fentanyl","TEV","12mcg/hr","Trans Patch","2024-09-27","","","","",NA
+"09858328","Apo-Methadone","APX","tab","1mg","2024-04-30","","methadone hydrochloride","opioid- treatment of severe and chronic pain and sometimes substace use disorder","",4.7
+"09858329","Apo-Methadone","APX","tab","5mg","2024-04-30","","methadone hydrochloride","opioid- treatment of severe and chronic pain and sometimes substace use disorder","",4.7
+"09858330","Apo-Methadone","APX","tab","10mg","2024-04-30","","methadone hydrochloride","opioid- treatment of severe and chronic pain and sometimes substace use disorder","",4.7
+"09858331","Apo-Methadone","APX","tab","25mg","2024-04-30","","methadone hydrochloride","opioid- treatment of severe and chronic pain and sometimes substace use disorder","",4.7
+"09858348","Sandoz Fentanyl Patch ","SDZ","trans patch","12mcg/hr","2024-09-27","","fentanyl citrate","opioid","",4.2
+"09858349","Teva-Fentanyl","TEV","trans patch","12mcg/hr","2024-09-27","","fentanyl citrate","opioid","",4.2
