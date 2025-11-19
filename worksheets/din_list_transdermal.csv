@@ -1,0 +1,65 @@
+"DIN.PIN","Brand.Name","Manufacturer.Code","Dosage.Form","Strength","Effective.Date","End.Date","Active.Ingredients","Active.Ingredient.Class.and.Use","Other.Notes","conversion_factor"
+"02249391","Ran-Fentanyl","RAN","trans patch","25mcg/hr","2012-04-16","","fentanyl","opioid- long term pain relief (high overodse risk)","Not for use in opioid naïve patients",4.2
+"02249413","Ran-Fentanyl","RAN","trans patch","50mcg/hr","2012-04-16","","fentanyl","opioid- long term pain relief (high overodse risk)","Not for use in opioid naïve patients",4.2
+"02249421","Ran-Fentanyl","RAN","trans patch","75mcg/hr","2012-04-16","","fentanyl","opioid- long term pain relief (high overodse risk)","Not for use in opioid naïve patients",4.2
+"02249448","Ran-Fentanyl","RAN","trans patch","100mcg/hr","2012-04-16","","fentanyl","opioid- long term pain relief (high overodse risk)","Not for use in opioid naïve patients",4.2
+"02275813","Duragesic Mat","JNO","trans patch","25mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02275821","Duragesic Mat","JNO","trans patch","50mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02275848","Duragesic Mat","JNO","trans patch","75mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02275856","Duragesic Mat","JNO","trans patch","100mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02282941","Teva-Fentanyl","TEV","trans patch","25mcg/hr","2014-04-30","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02282968","Teva-Fentanyl","TEV","trans patch","50mcg/hr","2014-04-30","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02282976","Teva-Fentanyl","TEV","trans patch","75mcg/hr","2014-04-30","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02282984","Teva-Fentanyl","TEV","trans patch","100mcg/hr","2014-04-30","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02311925","Teva-Fentanyl","TEV","trans patch","12mcg/hr","2014-04-30","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02314630","Apo-Fentanyl Matrix","APX","trans patch","25mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02314649","Apo-Fentanyl Matrix","APX","trans patch","50mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02314657","Apo-Fentanyl Matrix","APX","trans patch","75mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02314665","Apo-Fentanyl Matrix","APX","trans patch","100mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02327112","Sandoz Fentanyl Patch","SDZ","trans patch","12mcg/hr","2012-04-16","","fentanyl","opioid- post-operative pain and long-term pain relief","",4.2
+"02327120","Sandoz Fentanyl Patch","SDZ","trans patch","25mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02327139","Sandoz Fentanyl Patch","SDZ","trans patch","37mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02327147","Sandoz Fentanyl Patch","SDZ","trans patch","50mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02327155","Sandoz Fentanyl Patch","SDZ","trans patch","75mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02327163","Sandoz Fentanyl Patch","SDZ","trans patch","100mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02334186","Duragesic Mat","JAN","trans patch","12mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02341174","Butrans 5","PFP","trans patch","5mcg/hr","2012-04-16","","buprenorphine","opioid- moderate to severe chronic pain management (non-cancer pain)","",2.2
+"02341212","Butrans 10","PFP","trans patch","10mcg/hr","2012-04-16","","buprenorphine","opioid- moderate to severe chronic pain management (non-cancer pain)","",2.2
+"02341220","Butrans 20","PFP","trans patch","20mcg/hr","2012-04-16","","buprenorphine","opioid- moderate to severe chronic pain management (non-cancer pain)","",2.2
+"02341379","PMS-Fentanyl MTX","PMS","trans patch","12mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02341387","PMS-Fentanyl MTX","PMS","trans patch","25mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02341395","PMS-Fentanyl MTX","PMS","trans patch","50mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02341409","PMS-Fentanyl MTX","PMS","trans patch","75mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02341417","PMS-Fentanyl MTX","PMS","trans patch","100mcg/hr","2012-04-16","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02386844","Co Fentanyl Matrix Patch","COB","trans patch","12mcg/hr","2013-03-08","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02386852","Co Fentanyl Matrix Patch","COB","trans patch","25mcg/hr","2013-03-08","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02386879","Co Fentanyl Matrix Patch","COB","trans patch","50mcg/hr","2013-03-08","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02386887","Co Fentanyl Matrix Patch","COB","trans patch","75mcg/hr","2013-03-08","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02386895","Co Fentanyl Matrix Patch","COB","trans patch","100mcg/hr","2013-03-08","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02395665","Fentanyl Patch ","PRD","trans patch","25mcg/hr","2015-07-31","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02395673","Fentanyl Patch ","PRD","trans patch","50mcg/hr","2015-07-31","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02395681","Fentanyl Patch ","PRD","trans patch","75mcg/hr","2015-07-31","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02395703","Fentanyl Patch ","PRD","trans patch","100mcg/hr","2015-07-31","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02396696","Mylan-Fentanyl Matrix Patch","MYL","trans patch","12mcg/hr","2013-03-08","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02396718","Mylan-Fentanyl Matrix Patch","MYL","trans patch","25mcg/hr","2013-03-08","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02396726","Mylan-Fentanyl Matrix Patch","MYL","trans patch","50mcg/hr","2013-03-08","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02396734","Mylan-Fentanyl Matrix Patch","MYL","trans patch","75mcg/hr","2013-03-08","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02396742","Mylan-Fentanyl Matrix Patch","MYL","trans patch","100mcg/hr","2013-03-08","","fentanyl","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"02450771","Butrans 15","PFP","trans patch","15mcg/hr","2016-07-15","","buprenorphine","opioid- moderate to severe chronic pain management (non-cancer pain)","",2.2
+"02454440","Apo-Fentanyl Matrix","APX","trans patch","12mcg/hr","2016-07-15","","","","",NA
+"09857577","Apo-Fentanyl Matrix","APX","trans patch","75mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857578","Co Fentanyl Matrix Patch","COB","trans patch","75mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857579","Mylan-Fentanyl Matrix Patch","MYL","trans patch","75mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857580","PMS-Fentanyl MTX","PMS","trans patch","75mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857581","Ran-Fentanyl Matrix Patch","RAN","trans patch","75mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857582","Sandoz Fentanyl Patch","SDZ","trans patch","75mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857584","Teva-Fentanyl","TEV","trans patch","75mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857585","Apo-Fentanyl Matrix","APX","trans patch","100mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857586","Co Fentanyl Matrix Patch","COB","trans patch","100mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857587","Mylan-Fentanyl Matrix Patch","MYL","trans patch","100mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857588","PMS-Fentanyl MTX","PMS","trans patch","100mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857589","Ran-Fentanyl Matrix Patch","RAN","trans patch","100mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857590","Sandoz Fentanyl Patch","SDZ","trans patch","100mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09857592","Teva-Fentanyl","TEV","trans patch","100mcg/hr","2017-01-31","","fentanyl citrate","opioid- chronic severe pain, usually end-stage pain","Not for use in opioid naïve patients",4.2
+"09858348","Sandoz Fentanyl Patch ","SDZ","trans patch","12mcg/hr","2024-09-27","","fentanyl citrate","opioid","",4.2
+"09858349","Teva-Fentanyl","TEV","trans patch","12mcg/hr","2024-09-27","","fentanyl citrate","opioid","",4.2
