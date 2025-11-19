@@ -3,6 +3,9 @@ default:
   variable:
     variable_names: !expr here::here("worksheets", "od_variables.csv")
     variable_details: !expr here::here("worksheets", "cchsflow_variables_details1.csv")
+    DIN_list: !expr here::here("worksheets", "DIN_list.csv")
+    DIN_list2: !expr here::here("worksheets", "DIN_list2.csv")
+    din_list_oral: !expr here::here("worksheets", "din_list_oral.csv")
   modules: NULL
   data_type: ".RData"
   data:
