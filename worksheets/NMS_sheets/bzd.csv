@@ -1,0 +1,240 @@
+"DIN.PIN","Brand.Name","Manufacturer.Code","Dosage.Form","Strength","Effective.Date","End.Date","Active.Ingredients","Active.Ingredient.Class.and.Use","Other.Notes","conversion_factor"
+"00012696","Dalmane","VAL","cap","15mg","2012-04-16","","flurazepam","bzd- insomnia ","",NA
+"00012718","Dalmane","VAL","cap","30mg","2012-04-16","","flurazepam","bzd- insomnia ","",NA
+"00013285","Valium","HLR","tab","5mg","2012-04-16","","diazepam","bzd","",NA
+"00115630","Librax","HLR","cap","5mg & 2.5mg","2012-04-16","","chlordiazepoxide hydrochloride + clidinium bromide","bzd","",NA
+"00272434","Novo-Dipam","NOP","tab","2mg","2012-11-29","","diazepam","bzd","",NA
+"00272442","Novo-Dipam","NOP","tab","5mg","2012-11-29","","diazepam","bzd","",NA
+"00272450","Novo-Dipam","NOP","tab","10mg","2012-11-29","","diazepam","bzd","",NA
+"00313580","Diazepam 5 Tab","PRD","tab","5mg","2012-04-16","","diazepam","bzd","",NA
+"00362158","Apo-Diazepam","APX","tab","5mg","2012-04-16","","diazepam","bzd","",NA
+"00382825","Rivotril","HLR","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"00382841","Rivotril","HLR","tab","2mg","2012-04-16","","clonazepam","bzd","",NA
+"00402680","Apo-Oxazepam","APX","tab","10mg","2012-04-16","","oxazepam","bzd","",NA
+"00402737","Apo-Oxazepam","APX","tab","30mg","2012-04-16","","oxazepam","bzd","",NA
+"00402745","Apo-Oxazepam","APX","tab","15mg","2012-04-16","","oxazepam","bzd","",NA
+"00405329","Apo-Diazepam","APX","tab","2mg","2012-04-16","","diazepam","bzd","",NA
+"00405337","Apo-Diazepam","APX","tab","10mg","2012-04-16","","diazepam","bzd","",NA
+"00414220","Som Pam","VAL","cap","15mg","2012-04-16","","oxazepam","bzd","",NA
+"00414239","Som Pam","VAL","cap","30mg","2012-04-16","","oxazepam","bzd","",NA
+"00414247","Oxpam","VAL","tab","10mg","2012-04-16","","oxazepam","bzd","",NA
+"00414255","Oxpam","VAL","tab","15mg","2012-04-16","","oxazepam","bzd","",NA
+"00414263","Oxpam","VAL","tab","30mg","2012-04-16","","oxazepam","bzd","",NA
+"00434388","Diazepam 10Tab 10mg","PRD","tab","10mg","2012-04-16","","diazepam","bzd","",NA
+"00434396","Diazepam 2Tab 2mg","PRD","tab","2mg","2012-04-16","","diazepam","bzd","",NA
+"00496529","Novoxapam","NOP","tab","15mg","2012-11-29","","oxazepam","bzd","",NA
+"00496537","Novoxapam","NOP","tab","30mg","2012-11-29","","oxazepam","bzd","",NA
+"00497754","Oxazepam 10 Tab 10mg","PRD","tab","10mg","2012-04-16","","oxazepam","bzd","",NA
+"00497762","Oxazepam 15 Tab 15mg","PRD","tab","15mg","2012-04-16","","oxazepam","bzd","",NA
+"00497770","Oxazepam 30 Tab 30mg","PRD","tab","30mg","2012-04-16","","oxazepam","bzd","",NA
+"00500852","Novoxapam","NOP","tab","10mg","2012-11-29","","oxazepam","bzd","",NA
+"00511528","Mogadon","VAL","tab","5mg","2012-04-16","","nitrazepam","bzd","",NA
+"00511536","Mogadon","VAL","tab","10mg","2012-04-16","","nitrazepam","bzd","",NA
+"00518123","Lectopam","HLR","tab","3mg","2012-04-16","","bromazepam","bzd","",NA
+"00518131","Lectopam","HLR","tab","6mg","2012-04-16","","bromazepam","bzd","",NA
+"00521698","Apo-Flurazepam","APX","cap","15mg","2012-04-16","","flurazepam","bzd","",NA
+"00521701","Apo-Flurazepam","APX","cap","30mg","2012-04-16","","flurazepam","bzd","",NA
+"00522724","Chlordiazepoxide","AAP","cap","5mg","2012-04-16","","chlordiazepoxide","bzd","",NA
+"00522988","Chlordiazepoxide","AAP","cap","10mg","2012-04-16","","chlordiazepoxide","bzd","",NA
+"00522996","Chlordiazepoxide","AAP","cap","25mg","2012-04-16","","chlordiazepoxide","bzd","",NA
+"00548359","Xanax","PFI","tab","0.25mg","2012-04-16","","alprazolam","bzd","",NA
+"00548367","Xanax","PFI","tab","0.5mg","2012-04-16","","alprazolam","bzd","",NA
+"00568392","Riva Oxazepam","RIA","tab","10mg","2012-04-16","","oxazepam","bzd","",NA
+"00568406","Riva Oxazepam","RIA","tab","15mg","2012-04-16","","oxazepam","bzd","",NA
+"00568414","Riva Oxazepam","RIA","tab","30mg","2012-04-16","","oxazepam","bzd","",NA
+"00578479","Flurazepam 15","PRD","cap","15mg","2012-04-16","","flurazepam","bzd","",NA
+"00578487","Flurazepam 30","PRD","cap","30mg","2012-04-16","","flurazepam","bzd","",NA
+"00604453","Restoril","ORY","cap","15mg","2012-04-16","","temazepam","bzd","",NA
+"00604461","Restoril","ORY","cap","30mg","2012-04-16","","temazepam","bzd","",NA
+"00618454","Apo-Chlorax Cap","APX","cap","2.5mg","2012-04-16","","chlordiazepoxide","bzd","",NA
+"00628190","Novo-Clopate","NOP","cap","3.75mg","2012-11-29","","clorazepate dipotassium","bzd","",NA
+"00628204","Novo-Clopate","NOP","cap","7.5mg","2012-11-29","","clorazepate dipotassium","bzd","",NA
+"00628212","Novo-Clopate","NOP","cap","15mg","2012-11-29","","clorazepate dipotassium","bzd","",NA
+"00636223","Pro Chlorax","PRD","cap","2.5mg","2012-04-16","","chlordiazepoxide","bzd","",NA
+"00637742","Novo-Lorazem","NOP","tab","1mg","2012-04-16","","lorazepam","bzd","",NA
+"00637750","Novo-Lorazem","NOP","tab","2mg","2012-04-16","","lorazepam","bzd","",NA
+"00655643","Pro-Lorazepam Tab 0.5mg","PRD","tab","0.5mg","2012-04-16","","lorazepam","bzd","",NA
+"00655651","Pro-Lorazepam Tab 1.0mg","PRD","tab","1mg","2012-04-16","","lorazepam","bzd","",NA
+"00655678","Pro-Lorazepam Tab 2mg","PRD","tab","2mg","2012-04-16","","lorazepam","bzd","",NA
+"00655740","Apo-Lorazepam","APX","tab","0.5mg","2012-04-16","","lorazepam","bzd","",NA
+"00655759","Apo-Lorazepam","APX","tab","1mg","2012-04-16","","lorazepam","bzd","",NA
+"00655767","Apo-Lorazepam","APX","tab","2mg","2012-04-16","","lorazepam","bzd","",NA
+"00667102","PMS-Flurazepam Cap 15mg","PMS","cap","15mg","2012-04-16","","flurazepam","bzd","",NA
+"00711101","Novo-Lorazem","NOP","tab","0.5mg","2012-04-16","","lorazepam","bzd","",NA
+"00723770","Xanax","PFI","tab","1mg","2012-04-16","","alprazolam","bzd","",NA
+"00726362","PMS-Oxazepam Tab 10mg","PMS","tab","10mg","2012-04-16","","oxazepam","bzd","",NA
+"00726370","PMS-Oxazepam Tab 15mg","PMS","tab","15mg","2012-04-16","","oxazepam","bzd","",NA
+"00726389","PMS-Oxazepam Tab 30mg","PMS","tab","30mg","2012-04-16","","oxazepam","bzd","",NA
+"00728187","PMS-Lorazepam","PMS","tab","0.5mg","2012-04-16","","lorazepam","bzd","",NA
+"00728195","PMS-Lorazepam","PMS","tab","1mg","2012-04-16","","lorazepam","bzd","",NA
+"00728209","PMS-Lorazepam","PMS","tab","2mg","2012-04-16","","lorazepam","bzd","",NA
+"00808563","Triazolam","AAP","tab","0.125mg","2012-04-16","","triazolam","bzd","",NA
+"00808571","Triazolam","AAP","tab","0.25mg","2012-04-16","","triazolam","bzd","",NA
+"00813958","Xanax TS","PFI","tab","2mg","2012-04-16","","alprazolam","bzd","",NA
+"00860689","Clorazepate","AAP","cap","3.75mg","2012-04-16","","clorazepate dipotassium","bzd","",NA
+"00860697","Clorazepate","AAP","cap","15mg","2012-04-16","","clorazepate dipotassium","bzd","",NA
+"00860700","Clorazepate","AAP","cap","7.5mg","2012-04-16","","clorazepate dipotassium","bzd","",NA
+"00865397","Apo-Alpraz","APX","tab","0.25mg","2012-04-16","","alprazolam","bzd","",NA
+"00865400","Apo-Alpraz","APX","tab","0.5mg","2012-04-16","","alprazolam","bzd","",NA
+"00891797","PMS-Diazepam","PMS","o/l","1mg/mL","2012-04-16","","diazepam","bzd","",NA
+"01908170","Alprazolam-0.5 Tab 0.5mg","PRD","tab","0.5mg","2012-04-16","","alprazolam","bzd","",NA
+"01908189","Alprazolam-0.25 Tab 0.25mg","PRD","tab","0.25mg","2012-04-16","","alprazolam","bzd","",NA
+"01913239","Nu-Alpraz","NXP","tab","0.25mg","2012-04-16","","alprazolam","bzd","",NA
+"01913247","Nu-Alpraz","NXP","tab","0.5mg","2012-04-16","","alprazolam","bzd","",NA
+"01913484","Teva-Alprazolam","TEV","tab","0.25mg","2012-04-16","","alprazolam","bzd","",NA
+"01913492","Teva-Alprazolam","TEV","tab","0.5mg","2012-04-16","","alprazolam","bzd","",NA
+"01913506","Mylan-Triazolam","MYL","tab","0.25mg","2012-10-17","","triazolam","bzd","",NA
+"01995227","Mylan-Triazolam","MYL","tab","0.125mg","2012-10-17","","triazolam","bzd","",NA
+"02041405","Ativan","WAY","inj sol (with preservative)","4mg/mL","2017-02-28","","lorazepam","bzd","",NA
+"02041413","Ativan","PFI","tab","0.5mg","2012-04-16","","lorazepam","bzd","",NA
+"02041421","Ativan","PFI","tab","1mg","2012-04-16","","lorazepam","bzd","",NA
+"02041448","Ativan","PFI","tab","2mg","2012-04-16","","lorazepam","bzd","",NA
+"02041456","Ativan","PFI","sl tab","0.5mg","2012-04-16","","lorazepam","bzd","",NA
+"02041464","Ativan","PFI","sl tab","1mg","2012-04-16","","lorazepam","bzd","",NA
+"02041472","Ativan","PFI","sl tab","2mg","2012-04-16","","lorazepam","bzd","",NA
+"02048701","PMS-Clonazepam","PMS","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02048728","PMS-Clonazepam Tab 1.0mg","PMS","tab","1mg","2012-04-16","","clonazepam","bzd","",NA
+"02048736","PMS-Clonazepam","PMS","tab","2mg","2012-04-16","","clonazepam","bzd","",NA
+"02048701","PMS-Clonazepam","PMS","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02048728","PMS-Clonazepam Tab 1.0mg","PMS","tab","1mg","2012-04-16","","clonazepam","bzd","",NA
+"02048736","PMS-Clonazepam","PMS","tab","2mg","2012-04-16","","clonazepam","bzd","",NA
+"02103656","Ratio-Clonazepam","RPH","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02103737","Ratio-Clonazepam","RPH","tab","2mg","2012-04-16","","clonazepam","bzd","",NA
+"02130998","Dom-Clonazepam - Tab 0.5mg","DPC","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02131013","Dom-Clonazepam - Tab 2mg","DPC","tab","2mg","2012-04-16","","clonazepam","bzd","",NA
+"02137534","Mylan-Alprazolam","MYL","tab","0.25mg","2012-04-16","","alprazolam","bzd","",NA
+"02137542","Mylan-Alprazolam","MYL","tab","0.5mg","2012-04-16","","alprazolam","bzd","",NA
+"02145227","Phl-Clonazepam","PHE","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02145235","Phl-Clonazepam - Tab 1mg","PHE","tab","1mg","2012-04-16","","clonazepam","bzd","",NA
+"02145243","Phl-Clonazepam","PHE","tab","2mg","2012-04-16","","clonazepam","bzd","",NA
+"02173344","Nu-Clonazepam","NXP","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02173352","Nu-Clonazepam","NXP","tab","2mg","2012-04-16","","clonazepam","bzd","",NA
+"02177153","Apo-Bromazepam","APX","tab","1.5mg","2012-04-16","","bromazepam","bzd","",NA
+"02177161","Apo-Bromazepam","APX","tab","3mg","2012-04-16","","bromazepam","bzd","",NA
+"02177188","Apo-Bromazepam","APX","tab","6mg","2012-04-16","","bromazepam","bzd","",NA
+"02177889","Apo-Clonazepam","APX","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02177897","Apo-Clonazepam","APX","tab","2mg","2012-04-16","","clonazepam","bzd","",NA
+"02179660","PMS-Clonazepam- Tab 0.25mg","PMS","tab","0.25mg","2012-04-16","","clonazepam","bzd","",NA
+"02192705","Gen-Bromazepam","GEN","tab","1.5mg","2012-04-16","","bromazepam","bzd","",NA
+"02207818","PMS-Clonazepam-R","PMS","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02220520","Bromazepam-3 - Tab 3mg","PRD","tab","3mg","2012-04-16","","bromazepam","bzd","",NA
+"02220539","Bromazepam-6 - Tab 6mg","PRD","tab","6mg","2012-04-16","","bromazepam","bzd","",NA
+"02221799","Frisium","OVA","tab","10mg","2012-04-16","","clabazam","bzd","",NA
+"02223570","Nu-Temazepam","NXP","cap","15mg","2012-04-16","","tumazepam","bzd","",NA
+"02223589","Nu-Temazepam","NXP","cap","30mg","2012-04-16","","tumazepam","bzd","",NA
+"02224100","Dom-Clonazepam-R - Tab 0.5mg","DPC","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02225964","Apo-Temazepam","APX","cap","15mg","2012-04-16","","tumazepam","bzd","",NA
+"02225972","Apo-Temazepam","APX","cap","30mg","2012-04-16","","tumazepam","bzd","",NA
+"02229654","Nitrazadon","VAL","tab","5mg","2012-04-16","","nitrazepam","bzd","",NA
+"02229655","Nitrazadon","VAL","tab","10mg","2012-04-16","","nitrazepam","bzd","",NA
+"02229756","Dom-Temazepam","DPC","cap","15mg","2012-04-16","","temazepam","bzd","",NA
+"02229758","Dom-Tamazepam","DPC","cap","30mg","2012-04-16","","temazepam","bzd","",NA
+"02229760","Temazepam-15","PRD","cap","15mg","2012-04-16","","temazepam","bzd","",NA
+"02229761","Temazepam-30","PRD","cap","30mg","2012-04-16","","temazepam","bzd","",NA
+"02229813","Mylan-Alprazolam","MYL","tab","1mg","2012-04-16","","alprazolam","bzd","",NA
+"02229814","Mylan-Alprazolam","MYL","tab","2mg","2012-04-16","","alprazolam","bzd","",NA
+"02230095","Novo-Temazepam","NOP","cap","15mg","2012-04-16","","temazepam","bzd","",NA
+"02230102","Novo-Temazepam","NOP","cap","30mg","2012-04-16","","temazepam","bzd","",NA
+"02230366","Clonapam","ICN","tab","0.5mg","2012-11-29","","clonapam","bzd","",NA
+"02230368","Clonapam","VAL","tab","1mg","2012-04-16","","clonapam","bzd","",NA
+"02230369","Clonapam","ICN","tab","2mg","2012-11-29","","clonapam","bzd","",NA
+"02230584","Novo-Bromazepam","NOP","tab","3mg","2012-04-16","","bromazepam","bzd","",NA
+"02230585","Novo-Bromazepam","NOP","tab","6mg","2012-04-16","","bromazepam","bzd","",NA
+"02230769","Dalmacol","RIA","o/l","3.33mg","2012-04-16","","hydrocodone bitartrate, etafedrine, doxylamine succinate, sodium citrate, and anhydrous alcohol","bzd","",NA
+"02230950","Mylan-Clonazepam","MYL","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02230951","Mylan-Clonazepam","MYL","tab","2mg","2012-04-16","","clonazepam","bzd","",NA
+"02233960","Sandoz Clonazepam","SDZ","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02233982","Sandoz Clonazepam","SDZ","tab","1mg","2012-04-16","","clonazepam","bzd","",NA
+"02233985","Sandoz Clonazepam","SDZ","tab","2mg","2012-04-16","","clonazepam","bzd","",NA
+"02234003","Sandoz Nitrazepam","SDZ","tab","5mg","2012-04-16","","nitrazepam","bzd","",NA
+"02234007","Sandoz Nitrazepam","SDZ","tab","10mg","2012-04-16","","nitrazepam","bzd","",NA
+"02236948","Phl-Clonazepam-R","PHE","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02237420","Acetaminophen, Caffeine & 8mg Codeine","PEN","tab","8mg","2012-04-16","2016-12-31","clonazepam","bzd","",NA
+"02238162","Diastat","VAL","rect gel-2x 5mg pk","5mg/mL","2012-04-16","","diazepam","bzd","",NA
+"02238334","Novo-Clobazam","NOP","tab","10mg","2012-04-16","","clobazam","bzd","",NA
+"02239024","Novo-Clonazepam","NOP","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02239025","Novo-Clonazepam","NOP","tab","2mg","2012-04-16","","clonazepam","bzd","",NA
+"02242077","Riva-Clonazepam","RIA","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02242078","Riva-Clonazepam 2 mg","RIA","tab","2mg","2012-04-16","","clonazepam","bzd","",NA
+"02243023","Ratio-Temazepam","RPH","cap","15mg","2012-04-16","","temazepam","bzd","",NA
+"02243024","Ratio-Temazepam","RPH","cap","30mg","2012-04-16","","temazepam","bzd","",NA
+"02243611","Apo-Alpraz","APX","tab","1mg","2012-04-16","","alprazolam","bzd- short term anxiety relief","",NA
+"02243612","Apo-Alpraz TS","APX","tab","2mg","2012-04-16","","alprazolam","bzd- short term anxiety relief. ts stands for tablet scored (can safely be split)","",NA
+"02244474","PMS-Clobazam","PMS","tab","10mg","2012-04-16","","clobazam","bzd","",NA
+"02244638","Apo-Clobazam","APX","tab","10mg","2012-04-16","","clobazam","bzd","",NA
+"02244814","Co Temazepam","COB","cap","15mg","2012-04-16","","temazepam","bzd","",NA
+"02244815","Co Temazepam","COB","cap","30mg","2012-04-16","","temazepam","bzd","",NA
+"02245230","Apo-Nitrazepam","APX","tab","5mg","2012-04-16","","nitrazepam","bzd","",NA
+"02245231","Apo-Nitrazepam","APX","tab","10mg","2012-04-16","","nitrazepam","bzd","",NA
+"02245784","Dom-Lorazepam","DPC","tab","0.5mg","2012-04-16","","lorazepam","bzd","",NA
+"02245785","Dom-Lorazepam","DPC","tab","1mg","2012-04-16","","lorazepam","bzd","",NA
+"02245786","Dom-Lorazepam","DPC","tab","2mg","2012-04-16","","lorazepam","bzd","",NA
+"02247173","Bio-Diazepam","BII","tab","2mg","2012-04-16","","diazepam","bzd","",NA
+"02247174","Bio-Diazepam","BII","tab","5mg","2012-04-16","","diazepam","bzd","",NA
+"02247176","Bio-Diazepam","BII","tab","10mg","2012-04-16","","diazepam","bzd","",NA
+"02247177","Bio-Oxazepam","BII","tab","10mg","2012-04-16","","oxazepam","bzd","",NA
+"02247178","Bio-Oxazepam","BII","tab","15mg","2012-04-16","","oxazepam","bzd","",NA
+"02247179","Bio-Oxazepam","BII","tab","30mg","2012-04-16","","oxazepam","bzd","",NA
+"02247230","Dom-Clobazam","DPC","tab","10mg","2012-04-16","","clobazam","bzd","",NA
+"02247490","PMS-Diazepam","BII","tab","2mg","2012-04-16","","diazepam","bzd","",NA
+"02247491","PMS-Diazepam","BII","tab","5mg","2012-04-16","","diazepam","bzd","",NA
+"02247492","PMS-Diazepam","BII","tab","10mg","2012-04-16","","diazepam","bzd","",NA
+"02248126","Bio-Flurazepam","BII","cap","15mg","2012-04-16","","flurazepam","bzd","",NA
+"02248127","Bio-Flurazepam","BII","cap","30mg","2012-04-16","","flurazepam","bzd","",NA
+"02270641","Co Clonazepam","COB","tab","0.5mg","2012-04-16","","clonazepam","bzd- seizure disorder + panic and anxiety disorder","",NA
+"02270668","Co Clonazepam","COB","tab","1mg","2012-04-16","","clonazepam","bzd- seizure disorder + panic and anxiety disorder","",NA
+"02270676","Co Clonazepam","COB","tab","2mg","2012-04-16","","clonazepam","bzd- seizure disorder + panic and anxiety disorder","",NA
+"02273039","PMS-Temazepam","PMS","cap","15mg","2012-11-29","","temazepam","bzd- insomnia ","",NA
+"02273047","PMS-Temazepam","PMS","cap","30mg","2012-11-29","","temazepam","bzd- insomnia ","",NA
+"02297957","Phl-Temazepam","PHE","cap","15mg","2012-04-16","","temazepam","bzd- insomnia ","",NA
+"02297965","Phl-Temazepam","PHE","cap","30mg","2012-04-16","","temazepam","bzd- insomnia ","",NA
+"02298201","Phl-Lorazepam","PHE","tab","0.5mg","2012-04-16","","lorazepam","bzd- anxiety disorder","",NA
+"02298228","Phl-Lorazepam","PHE","tab","1mg","2012-04-16","","lorazepam","bzd- anxiety disorder","cancelled post-market but on the same day as original market date",NA
+"02298236","Phl-Lorazepam","PHE","tab","2mg","2012-04-16","","lorazepam","bzd- anxiety disorder","cancelled post-market but on the same day as original market date",NA
+"02303329","Zym-Clonazepam","ZYN","tab","1mg","2012-04-16","","clonazepam","bzd- seizure disorder + panic and anxiety disorder","",NA
+"02303337","Zym-Clonazepam","ZYN","tab","2mg","2012-04-16","","clonazepam","bzd- seizure disorder + panic and anxiety disorder","",NA
+"02311593","Pro-Clonazepam","PRD","tab","0.5mg","2012-04-16","","clonazepam","bzd- seizure disorder + panic and anxiety disorder","",NA
+"02311607","Pro-Clonazepam","PRD","tab","1mg","2012-04-16","","clonazepam","bzd- seizure disorder + panic and anxiety disorder","",NA
+"02311615","Pro-Clonazepam","PRD","tab","2mg","2012-04-16","","clonazepam","bzd- seizure disorder + panic and anxiety disorder","",NA
+"02344602","Clonazepam","MEL","tab","1mg","2012-04-16","","clonazepam","bzd- seizure disorder + panic and anxiety disorder","",NA
+"02344610","Clonazepam","MEL","tab","2mg","2012-04-16","","clonazepam","bzd- seizure disorder + panic and anxiety disorder","",NA
+"02344629","Clonazepam-R","MEL","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02345676","Zym-Clonazepam","ZYN","tab","0.5mg","2012-04-16","","clonazepam","bzd","",NA
+"02347733","NTP-Lorazepam","NTP","tab","0.5mg","2012-11-02","","lorazepam","bzd- genralized anxiety and insomnia (lower potency than alprazolam)","",NA
+"02347741","NTP-Lorazepam","NTP","tab","1mg","2012-11-02","","lorazepam","bzd- genralized anxiety and insomnia (lower potency than alprazolam)","",NA
+"02347768","NTP-Lorazepam","NTP","tab","2mg","2012-11-02","","lorazepam","bzd- genralized anxiety and insomnia (lower potency than alprazolam)","",NA
+"02349191","Alprazolam","SAI","tab","0.25mg","2012-11-29","","alprazolam","bzd- genralized anxiety and panic disorder (more potent)","",NA
+"02349205","Alprazolam","SAI","tab","0.5mg","2012-11-29","","alprazolam","bzd- genralized anxiety and panic disorder (more potent)","",NA
+"02351072","Lorazepam","SAI","tab","0.5mg","2012-11-29","","lorazepam","bzd- genralized anxiety and insomnia (lower potency than alprazolam)","",NA
+"02351080","Lorazepam","SAI","tab","1mg","2012-11-29","","lorazepam","bzd- genralized anxiety and insomnia (lower potency than alprazolam)","",NA
+"02351099","Lorazepam","SAI","tab","2mg","2012-11-29","","lorazepam","bzd- genralized anxiety and insomnia (lower potency than alprazolam)","",NA
+"02397056","Jamp-Alprazolam","JPC","tab","1mg","2025-01-31","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) and/or agoraphobia","",NA
+"02397064","Jamp-Alprazolam","JPC","tab","2mg","2025-01-31","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) and/or agoraphobia","",NA
+"02400111","Jamp-Alprazolam","JPC","tab","0.25mg","2013-05-13","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) and/or agoraphobia","",NA
+"02400138","Jamp-Alprazolam","JPC","tab","0.5mg","2013-05-13","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) and/or agoraphobia","",NA
+"02400146","Jamp-Alprazolam","JPC","tab","1mg","2014-02-27","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) and/or agoraphobia","",NA
+"02400154","Jamp-Alprazolam","JPC","tab","2mg","2014-02-27","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) and/or agoraphobia","",NA
+"02404877","Riva-Alprazolam ","RIA","tab","0.25mg","2015-07-31","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) with/without agoraphobia","",NA
+"02404885","Riva-Alprazolam ","RIA","tab","0.5mg","2015-07-31","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) with/without agoraphobia","",NA
+"02404893","Riva-Alprazolam ","RIA","tab","1mg","2015-07-31","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) with/without agoraphobia","",NA
+"02404907","Riva-Alprazolam ","RIA","tab","2mg","2015-07-31","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) with/without agoraphobia","",NA
+"02410745","Apo-Lorazepam Sublingual","APX","sl tab","0.5mg","2013-10-10","","lorazepam","bzd- genralized anxiety and insomnia (lower potency than alprazolam). may be used for acute anxiety attacks due to faster onset","",NA
+"02410753","Apo-Lorazepam Sublingual","APX","sl tab","1mg","2013-10-10","","lorazepam","bzd- genralized anxiety and insomnia (lower potency than alprazolam). may be used for acute anxiety attacks due to faster onset","",NA
+"02410761","Apo-Lorazepam Sublingual","APX","sl tab","2mg","2013-10-10","","lorazepam","bzd- genralized anxiety and insomnia (lower potency than alprazolam). may be used for acute anxiety attacks due to faster onset","",NA
+"02417634","Nat-Alprazolam","NAT","tab","0.25mg","2015-10-29","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) with/without agoraphobia","",NA
+"02417642","Nat-Alprazolam","NAT","tab","0.5mg","2015-10-29","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) with/without agoraphobia","",NA
+"02417650","Nat-Alprazolam","NAT","tab","1mg","2015-10-29","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) with/without agoraphobia","",NA
+"02417669","Nat-Alprazolam","NAT","tab","2mg","2016-11-30","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) with/without agoraphobia","",NA
+"02429810","Lorazepam","SIV","tab","1mg","2016-07-15","","lorazepam","bzd- genralized anxiety and insomnia (lower potency than alprazolam). may be used for acute anxiety attacks due to faster onset","",NA
+"02429829","Lorazepam","SIV","tab","2mg","2016-07-15","","lorazepam","bzd- genralized anxiety and insomnia (lower potency than alprazolam). may be used for acute anxiety attacks due to faster onset","",NA
+"02434601","Jamp Alprazolam","JPC","tab","0.25mg","2022-03-31","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) and/or agoraphobia","",NA
+"02434628","Jamp Alprazolam","JPC","tab","0.5mg","2022-03-31","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) and/or agoraphobia","",NA
+"02434636","Jamp Alprazolam","JPC","tab","1mg","2022-03-31","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) and/or agoraphobia","",NA
+"02434644","Jamp Alprazolam","JPC","tab","2mg","2022-03-31","","alprazolam","bzd- genralized anxiety and panic disorder (more potent) and/or agoraphobia","",NA
+"02442027","Clonazepam","SIV","tab","0.25mg","2016-07-15","","clonazepam","bzd- acute treatment of panic diorder, epilepsy. some off label uses include: resless leg sundrome, acute mania, insomnia, tarive dyskinesia","",NA
+"02442035","Clonazepam","SIV","tab","0.5mg","2016-07-15","","clonazepam","bzd- acute treatment of panic diorder, epilepsy. some off label uses include: resless leg sundrome, acute mania, insomnia, tarive dyskinesia","",NA
+"02442043","Clonazepam","SIV","tab","1mg","2016-07-15","","clonazepam","bzd- acute treatment of panic diorder, epilepsy. some off label uses include: resless leg sundrome, acute mania, insomnia, tarive dyskinesia","",NA
+"02442051","Clonazepam","SIV","tab","2mg","2016-07-15","","clonazepam","bzd- acute treatment of panic diorder, epilepsy. some off label uses include: resless leg sundrome, acute mania, insomnia, tarive dyskinesia","",NA
+"02519070","Diastat","BHC","rect gel","10mg/2mL","2024-06-07","","diazepam","bzd- management of selected, refractory, patients with epilepsy, stable regimens of aed","To be administered by caregivers",NA
+"09853340","Diastat","VAL","rect gel-2x10mg pk","5mg/mL","2012-06-01","","diazepam","bzd- management of selected, refractory, patients with epilepsy, stable regimens of aed","To be administered by caregivers",NA
+"09853430","Diastat","VAL","rect gel-2x15mg pk","5mg/mL","2012-06-01","","diazepam","bzd- management of selected, refractory, patients with epilepsy, stable regimens of aed","To be administered by caregivers",NA
