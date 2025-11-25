@@ -1,11 +1,11 @@
 default:
   variable_type: ".csv"
   variable:
-    variable_names: !expr here::here("worksheets", "od_variables.csv")
-    variable_details: !expr here::here("worksheets", "cchsflow_variables_details1.csv")
-    din_list_oral: !expr here::here("NMS_sheets", "din_list_oral.csv")
-    din_list_transdermal: !expr here::here("NMS_sheets", "cchsflow_variables_details1.csv")
-    din_list: !expr here::here("NMS_sheets", "cchsflow_variables_details1.csv")
+    variable_names: !expr here::here("worksheets","cchs_sheets", "od_variables.csv")
+    variable_details: !expr here::here("worksheets", "cchs_sheets", "cchsflow_variables_details1.csv")
+    din_list_oral: !expr here::here("worksheets", "NMS_sheets", "din_list_oral.csv")
+    din_list_transdermal: !expr here::here("worksheets", "NMS_sheets", "din_list_transdermal.csv")
+    din_list: !expr here::here("worksheets","NMS_sheets", "DIN_list.csv")
   modules: NULL
   data_type: ".RData"
   data:
