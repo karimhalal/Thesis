@@ -73,3 +73,11 @@ din_list<-din_list%>%
   ))
 
 write.csv(din_list, "worksheets/DIN_list2.csv", row.names=FALSE)
+
+din_list_oral<-din_list%>%
+  filter(!grepl("inj", Dosage.Form)&!grepl("trans patch", Dosage.Form))
+write.csv(din_list_oral, "worksheets/din_list_oral.csv", row.names=FALSE)
+
+din_list_transderm<-din_list%>%
+  filter(grepl("trans patch", Dosage.Form))%>%
+  write.csv("worksheets/din_list_transdermal.csv", row.names=FALSE)
