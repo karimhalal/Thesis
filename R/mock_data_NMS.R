@@ -90,14 +90,15 @@ generate_mock_nms_data <- function(
   set.seed(seed)
   unique_ikn <- sprintf("IKN%07d", sample(1000000:9999999, n_patients, replace = FALSE))
 
-  # Assign IKNs to records (patients can have multiple prescriptions)
+  # Assign IKNs to records (patients can have multiple prescriptions), this function code "long" raw data
   set.seed(seed + 1)
   ikn <- sample(unique_ikn, n_records, replace = TRUE)
 
-  # ============================================================================
-  # 2. Generate DIN (Drug Identification Numbers)
-  # ============================================================================
-# Sample DINs from the master list (85% valid)
+##################
+  # Generate DIN (Drug Identification Numbers)
+##################
+
+  # Sample DINs from the master list. This will represent
   set.seed(seed + 2)
   sampled_dins <- sample(1:nrow(din_master), n_records, replace = TRUE)
   din <- din_master$DIN_PIN[sampled_dins]
@@ -140,9 +141,6 @@ generate_mock_nms_data <- function(
         # Extra leading zeros
         din[i] <- paste0("00", din[i])
       } else if (malform_type == 3) {
-        # Contains letters
-        din[i] <- paste0(substr(din[i], 1, 6), sample(LETTERS, 2, replace = TRUE), collapse = "")
-      } else if (malform_type == 4) {
         # Contains spaces or hyphens
         din[i] <- paste0(substr(din[i], 1, 4), "-", substr(din[i], 5, 8))
       } else {
@@ -152,22 +150,89 @@ generate_mock_nms_data <- function(
     }
   }
 
-  # ============================================================================
+  # 
   # 3. Generate MANUFACTURER_CD
-  # ============================================================================
+  # 
   # Extract from DIN master list based on sampled DINs
   manufacturer_cd <- din_master$Manufacturer_Code[sampled_dins]
 
-  # ============================================================================
+  #for invalid DINs, randomly assign the manufacturer code
+  for (i in 1:n_records){
+    if(din_issue_type[i]!="valid"){
+      manufacturer_cd[i]<-sample(c("NOV", "VAL", "HLR", "PFP","PMS", "RPH"),1)
+    }
+  }
+
+  # 
   # 4. Generate DOSAGE_FORM
-  # ============================================================================
-  # Extract from DIN master list
+  # 
+  # Extract from DIN master list for all the valid DINs. This might
   dosage_form <- din_master$Dosage_Form[sampled_dins]
 
-  # ============================================================================
-  # 5. Generate DIN_DESC (Description)
-  # ============================================================================
-  # Create description with intentional variations in spacing/formatting
+  #for invalid DIN, randomize the most common types
+  for(i in 1:n_records){
+    if(din_issue_type[i]!="valid"){
+      dosage_form[i]<-sample(c(
+  "buccal soluble fil",
+  "cap",
+  "chew tab",
+  "cr cap",
+  "cr tab",
+  "er cap",
+  "er pd for sol",
+  "er tab",
+  "er tab chewable",
+  "o/l",
+  "o/l 500ml",
+  "oral concentrate (cherry flavour)",
+  "oral concentrate (unflavoured)",
+  "oral drops",
+  "oral sol",
+  "rect gel",
+  "rect gel-2x 5mg pk",
+  "rect gel-2x10mg pk",
+  "rect gel-2x15mg pk",
+  "rect sup",
+  "sl tab",
+  "soluble film",
+  "soluble film foil pk.",
+  "sr cap",
+  "sr tab",
+  "sup",
+  "susp",
+  "tab",
+  "tab (chewable)",
+  "topical sol"
+), size = 1)
+    }
+  }
+
+
+  #
+  # 5. STRENGTH (Description)
+  # 
+  # Dosage character variable including the dosage quantity (2 or 3 digit number) followed
+  #assign dosage for correctly identified DIN
+  STRENGTH<-din_master$Strength[sampled_dins]
+
+  #Generate random doses for invalid DINs based on Dosage forms
+  for(i in 1:n_records){
+    if (din_issue_type[i] != "valid" & grepl("cap", dosage_form[i])){
+      STRENGTH[i]<-as.character(paste(sample(0.25:150, 1), "mg"))
+    } else if (din_issue_type[i]!="valid"&grepl("Trans Patch", dosage_form[i])){
+      STRENGTH[i]<-as.character(paste(sample(c(12, 25, 50, 75, 100, 125), 1), "mcg/hr"))
+    } else if (din_issue_type[i]!="valid"&grepl("o/l", dosage_form[i])){
+      STRENGTH[i]<-as.character(paste(sample(c(1,2,10,25,30, 50, 60, 75), 1), "mg/ml"))
+    } else if (din_issue_type[i]!="valid"&grepl("inj", dosage_form[i])){
+      STRENGTH[i]<-as.character(paste(sample(c(1,2,10,25,30, 50, 60, 75, 100, 200), 1), "mg/ml"))
+    }
+  }
+
+
+  # 
+  # 6. Generate DIN_DESC (Description)
+  # 
+  # Description of DIN including the following: BRAND NAME] [GENERIC NAME] [STRENGTH] [DOSAGE FORM] [ROUTE]
   set.seed(seed + 3)
 
   din_desc <- mapply(function(brand, strength, form, idx) {
@@ -206,9 +271,9 @@ generate_mock_nms_data <- function(
     ))
   }
 
-  # ============================================================================
+  # 
   # 6. Generate DAYSSUPL (Days Supply)
-  # ============================================================================
+  # 
   # Normal distribution with mean ~30 days, SD ~15 days
   set.seed(seed + 5)
   dayssupl <- round(rnorm(n_records, mean = 30, sd = 15))
@@ -220,16 +285,16 @@ generate_mock_nms_data <- function(
   na_indices <- sample(1:n_records, round(0.05 * n_records))
   dayssupl[na_indices] <- NA
 
-  # ============================================================================
+  # 
   # 7. Generate CURR_STAT (Current Status)
-  # ============================================================================
-  # A = 80%, C = 10%, V = 10%
+  # 
+  # The overwhelming majority of perscriptions will not be reversed (this should be cleaned by the analyst) A = 90%, C = 5%, V = 5%
   set.seed(seed + 7)
   curr_stat <- sample(
     c("A", "C", "V"),
     n_records,
     replace = TRUE,
-    prob = c(0.8, 0.1, 0.1)
+    prob = c(0.9, 0.05, 0.05)
   )
 
   # ============================================================================
@@ -255,8 +320,8 @@ generate_mock_nms_data <- function(
 
   quantity <- sapply(dosage_form, function(form) {
     if (grepl("Trans Patch|Patch", form, ignore.case = TRUE)) {
-      # Patches: typically 3-10 units
-      round(rnorm(1, mean = 5, sd = 2))
+      # Patches: typically 3 units
+      round(rnorm(1, mean = 10, sd = 2))
     } else if (grepl("Tab|Cap", form, ignore.case = TRUE)) {
       # Tablets/Capsules: typically 30-90 units
       round(rnorm(1, mean = 60, sd = 30))
@@ -295,6 +360,7 @@ generate_mock_nms_data <- function(
     DIN = din,
     DIN_DESC = din_desc,
     MANUFACTURER_CD = manufacturer_cd,
+    STRENGTH=STRENGTH,
     DOSAGE_FORM = dosage_form,
     DAYSSUPL = dayssupl,
     QUANTITY = quantity,
