@@ -1,0 +1,249 @@
+---
+title: "Trends and Variations in Associations Between Survey-Derived Individual Characteristics and Opioid-Related Adverse Events in Community-Dwelling Ontarians: 2013-2024"
+
+author:
+  - name: Abdul Karim Halal
+    affiliations:
+      - ref: aff1
+      - ref: aff2
+  
+  - name: Daniel Myran
+    affiliations:
+      - ref: aff1
+      - ref: aff2
+  
+  - name: Douglas G. Manuel
+    affiliations:
+      - ref: aff1
+      - ref: aff2
+      - ref: aff3
+    corresponding: true
+
+affiliations:
+  - id: aff1
+    name: School of Epidemiology and Public Health, University of Ottawa
+    city: Ottawa
+    state: Ontario
+    country: Canada
+  
+  - id: aff2
+    name: Ottawa Hospital Research Institute
+    city: Ottawa
+    state: Ontario
+    country: Canada
+  
+  - id: aff3
+    name: Ottawa Hospital Research Institute
+    city: Ottawa
+    state: Ontario
+    country: Canada
+
+date: today
+
+format:
+  
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    theme: cosmo
+
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    geometry: 
+      - margin=1in
+    papersize: letter
+
+  docx:
+    toc: true
+    number-sections: true
+
+bibliography: references.bib
+csl: vancouver.csl
+---
+
+
+# Abstract
+
+## Introduction
+
+The recent rise in incidence of opioid overdose coinciding with the COVID-19 pandemic has been increasingly recognized as a public health threat which is thought to underlie recent increases in premature deaths in many Canadian provinces. Post-COVID trends of drug and opioid overdose and the factors that underlie individual differences in risk of this outcome remain poorly understood. This study will examine recent changes in trends of fatal and non-fatal opioid overdose in community dwelling Ontarians and will identify associations and potential mechanisms of this outcome using sociodemographic, health behavior and health measures data.
+
+## Methods and Analysis
+
+We will use a cohort of all Ontario respondents of the Canadian Community Health Survey (CCHS) (2013/2014, 2015/2016, and 2017/2018) as well as a subset of all opioid-prescribed respondents. Opioid prescription status and overdose-related adverse events will be ascertained through individual linkage of survey respondents to population-level administrative databases. Pre- and post-covid trends of overdose-related adverse events and burden of premature drug-related death will be assessed. Proportional hazards regression models will be estimated using fatal and non-fatal overdose as the primary outcome and death of a different cause as a competing risk. Risk ratio estimates corresponding to each potential risk factor ascertained from CCHS will be reported.
+
+# Introduction
+
+Drug-related mortality and hospitalization pose a significant public health threat both globally and domestically in Canada. In Ontario alone, more than 10,000 substance-related toxicity deaths have been reported in the period between 2018 and 2022[@ledlie2024]. In that time, the burden of drug overdose deaths generally, and opioid-related deaths specifically, has increased sharply in younger adults, with the percentage of deaths in this group in Ontario resulting from opioid overdose rising to 29.3% of all deaths in this cohort in 2021 from 19.8% in 2019. Prescriptions of controlled substances have long been associated with risky drug-related behavior. Individuals with a history of prescription of controlled substances are believed to be at increased risk of death from drug-related overdoses[@tanz2022]. Despite recent changes in prescription practices for controlled substances, prescription misuse continues to be a significant public health challenge[@gomes2023]. For example, as of 2018, it is estimated that 13-16% of Canada's population had been prescribed an opioid within the past 12 months[@lociganic2022; @song2024]. Of those, approximately 9.7% were estimated to have engaged in problematic use of these opioid prescriptions[@song2024]. To date, several predictors of drug-related adverse events in patients receiving prescriptions of controlled substances have been identified. These include demographic indicators such as age, sex, race, and ethnicity; behavioral indicators such as the history of substance use or abuse, including use of opiates, stimulants, and alcohol; and a number of comorbid conditions, including chronic conditions, anxiety disorders, mood disorders, and substance use disorders[@meisel2015].
+
+## Summary of Existing Studies
+
+There has been great interest in defining post-COVID trends of drug overdoses using administrative databases. Existing studies have identified significant increases in rates of drug overdose adverse events coinciding with an increase in COVID-19-related mental and physical harms[@saloner2020]. US and Canada-based studies of trends in opioid harms revealed a 2-3 fold increase in the years of life lost due to opioid-overdose and significant increases the proportion of deaths related to opioids in all age groups[@glanz2018; @odprn2023]. There has also been great interest in the use of larger regional and national administrative databases to examine population-level predictors of drug overdose following prescription of controlled substances, especially opioid analgesics[@evans2022; @glanz2018]. These models report moderate to good discriminative ability (c-stat ranging from 0.73 to 0.94), and are mostly derived using large regional or national cohorts including hundreds of thousands, or millions of individuals. These models aim to estimate individual risk of overdose and produce population level estimates based on individual characteristics derived from population level administrative datasets. In one notable exception to these machine learning models using large administrative databases, Glanz et al.[@glanz2018] developed a modified Cox regression algorithm to estimate individual risk of in a much smaller sample of individuals that had been prescribed chronic opioid therapy in the 2 years following prescription. The derivation model had a C-statistic of 0.75 (95% CI 0.70-0.80), but poor calibration with a sensitivity of 82.2% and a specificity of 49.5%. Additionally, this study, while containing more granular personal information about health behaviors than can be found in administrative databases, still lacked any health information about individual health attitudes which are traditionally collected through population health surveys.
+
+## Limitations of Existing Studies
+
+Existing studies have shown limited ability to capture the most recent changes in trends of drug-related harms occurring between 2022 and the present day, as reported in regional drug-harms monitoring initiatives, due to limitations in available data[@odprn2023]. Additionally, existing studies exclude of potential covariates which are not traditionally captured in administrative databases[@evans2022]. Most existing studies incorporate only clinical and demographic risk factors or predictors, excluding potential social, behavioral, and self-reported health predictors which have previously been shown to be correlated with drug-related adverse events. To that end, we propose that routinely collected health information from the Canadian Community Health Survey (CCHS) can be used to generate predictions based on a more diverse set of variables than was previously available. This study will be one of the largest survey-based descriptive and prognostic studies on the impact of prescription of controlled substances on risk of drug-related adverse events, with CCHS respondents being linked to data from administrative databases to ensure precise measurement of controlled substance exposure and outcomes outlined below.
+
+## Objectives
+
+The goal of this study is to use national survey data, in conjunction with provincial administrative data to identify trends and variations in the long-term risk of drug overdose in individuals who have been prescribed opioids. The study will aim to accomplish the following:
+
+-   To identify post-COVID population-level trends in burden of drug-related adverse events amongst Canadian community dwelling adults with and without an Opioid prescription and to compare these trends to those observed in the general population.
+-   To identify and examine associations between drug-related adverse events including hospitalizations, emergency department (ED) visits, as well as deaths and sociodemographic, health behaviour, health status measures, and prescription characteristics (when applicable) in individuals that have filled an Opioid prescription
+-   To develop and validate a prognostic risk algorithm for prediction of long-term incidence of drug-related adverse events in the community setting using CCHS survey data.
+
+# Methods
+
+## Study Design
+
+In this prospective cohort study, we will develop and validate a prognostic model using The Canadian Community Health Survey (CCHS) to create the study cohort and collect information relating to potential predictors. Additionally, for cohort creation, exposure status (narcotics prescription) will be determined with individually linked prescription data derived from the Narcotics Monitoring System (NMS), and outcomes will be ascertained through individual linkage of participants to administrative datasets. All analyses will be conducted in accordance with best practices outlined in the Transparent Reporting of Multivariable prediction Models for Individual Prognosis or Diagnosis (TRIPOD) and the Strengthening the Reporting of Observational Studies in Epidemiology (STROBE)[@collins2015].
+
+## Data Sources
+
+We will use population-based survey data from the Canadian Community Health Survey (CCHS), a national annual cross-sectional survey which reports information relating to health status, as well as social and behavioural determinants of health amongst a sample of Canadian community-dwelling individuals over the age of 12 living in all 10 provinces and three territories. CCHS excludes 3% of the Canadian population above the age of 18 belonging to the following groups: persons living on reserves and other aboriginal settlements, full-time members of the Canadian Forces, institutionalized individuals, and individuals living in the Quebec health regions of Region du Nunavik and Region des Terres-Cries-de-la-Baie-James[@statcan2007]. We will conduct descriptive analysis and model building using Ontario respondents to the following CCHS survey cycles: 2013-2014, 2015-2016, and 2017-2018.
+
+Opioid and benzodiazepine prescription status will be determined by a review of drug prescription history in the 12 months leading up to the CCHS survey administration date and after survey administration. This prescription status will be ascertained by data from the provincial Narcotics Monitoring System (NMS), a central database introduced in April 2012 which monitors all dispensing of opioids and other controlled substance such as benzodiazepines, and a number of stimulant medications (ex. ADHD drugs) by pharmacies and other health institutions in Ontario[@nms2025].
+
+To ascertain the incident events, the survey respondents will be individually linked to the following databases: National Ambulatory Care Reporting System (NACRS), the Discharge Abstracts Database (DAD), the Drug and Dug/Alcohol Related Deaths (DDARD), and the Ontario Registrar General, Deaths (ORGD). The outcome will include all deaths, hospitalizations and emergency department visits attributed to drugs including opioids, stimulants, benzodiazepines, and alcohol. All datasets were linked using unique encoded identifiers produced through ICES linkage, known as the ICES number (IKN).
+
+## Participants
+
+The population of interest for this study will be Canadian community-dwelling adults and youth between the ages of 12 and 84 captured in the above outlined cycles of CCHS. A linkage key obtained through ICES (IKN) will be used to link the cohort file (CCHS file) and the analytical files (outcome files outlined above). Participants whose "death" preceded the survey administration date due to administrative errors will be excluded from the study due to logical inconsistency. Additionally, individuals whose outcome status (death) is missing will also be excluded from the study.
+
+## Outcomes
+
+The outcome of interest will be the occurrence of death, hospitalization, or ED visit related to opioid, stimulant, alcohol, or benzodiazepine toxicity during the follow-up period. Survival time was calculated as the time from commencement of prescription in NMS to the time of incident event or end of follow-up. In 1991, the Drug and Dug/Alcohol Related Deaths (DDARD) was established as an administrative database which collected records from coronial investigations summarizing opioid toxicity deaths. In 2018, the database was expanded to include other types of drug-related deaths such as stimulant and benzodiazepine overdoses, as well as deaths due to alcohol toxicity[@odprn2023b]. To address the unavailability of data for non-opioid drug toxicity deaths through DDARD prior to January 1st 2018, outcomes of interest occurring before that period will be ascertained through the Ontario Registrar General, Deaths (ORGD). DDARD and ORGD record drug toxicity deaths using the following International Classification of Disease-10 (ICD-10) codes: X40-X44 for accidental poisoning by drugs, X60-X64 for intentional suicide by drug poisoning, Y10-Y14 for poisonings where the intent is not clear, and deaths involving drugs outlined in T40.0-T40.6 (Opium, Heroin, opioid analgesics, methadone, synthetic drugs such as fentanyl, cocaine, and other unspecified narcotics). Drug-related hospitalizations and emergency department visits were ascertained using the Ontario Discharge Abstracts Database (DAD) and the National Ambulatory Care Reporting System (NACRS), respectively. Participants will be followed up for a maximum of 10 years following the date of first narcotics prescription or until the earliest of the following: the occurrence of an incident event, death due to other causes (defined as the competing risk), loss to follow-up (loss of healthcare eligibility), or end of study as determined by the latest available data (June 2024).
+
+## Sample Size
+
+Following cohort creation, outcome prevalence will be estimated using outcomes data. Minimum required sample size will be estimated using the pmsampsize package in R. For predictive models with time-to-event outcomes, the number of individuals for which the outcome of interest is recorded should exceed 10 times the number of parameters (degrees of freedom) included in the model. Due to heterogeneity of outcome prevalence in study population compared to the general population, true sample-specific outcome prevalence cannot be accurately determined apriori. Predictor selection will, in part, be guided by parametric restrictions due to the expected rarity of the outcome in the study population.
+
+## Main Exposure
+
+The study cohort will be created using the CCHS cycles outlined above. Study population is defined as the participants in the above mentioned CCHS cycles who have received an opioid prescription (see supplemental tables 2 and 3 below) in the 12 months leading up to the survey administration date or at any date thereafter. These opioids include medications containing opioid active ingredients such as: Oxycodone, hydromorphone, fentanyl, methadone, morphine, codeine, tramadol and derivatives thereof. NMS will also be used stimulants such as: Adderall, Vyvanse, Dexedrine, Concerta, and Ritalin; and benzodiazepines such as: alprazolam, clonazepam, diazepam (valium), and lorazepam. A full list of drug identification numbers (DINs) of drugs included in this study can be found in Supplemental Table 3 below.
+
+## Risk Factors
+
+Risk factors were identified through a review of existing predictive algorithms for drug overdose and through the inclusion of known or suspected correlates of drug overdose. A total of 20 potential predictor variables were identified including: 7 sociodemographic predictors, 3 indicators of general health, 4 baseline chronic conditions, 3 indicators related to individual prescription status, 2 behavioral predictors, and a predictor relating to chronic pain[@meisel2015; @aram2020; @bayly2025; @ferris2019].
+
+### Sociodemographic Variables
+
+Age will be defined as years at survey administration date. Sex will be defined as "male" and "female". Neighborhood social and material deprivation, captured using Pampalon's deprivation index, will be coded as: "High", "moderate", and "low". Current employment and marital statuses as well as rural residence status will all be dichotomized into "employed" or "unemployed", "single never married" or "with domestic partner", and "rural area" and "urban area", respectively.
+
+### Chronic Conditions at Baseline
+
+The following chronic conditions will be coded as binary yes/no variables based on individual CCHS responses: chronic conditions (cancer, diabetes, CVD), anxiety disorders (phobia, generalized anxiety disorder, or a panic disorder), and mood disorders (depression, bipolar disorder, mania and dysthymia). Chronic pain will be assessed using the health utility index, a validated classification system for chronic pain based on responses to a CCHS item. HUI-Pain is classified into the following 5 categories: Free of pain or discomfort, pain that prevents no activities, pain that prevents a few activities, pain that prevents some activities, and pain that prevents most activities.
+
+### General Health Variables
+
+Several self-reported health variables will be explored as potential predictors of drug-related adverse events in narcotics prescribed individuals. This includes sense of belonging to the local community, self-rated mental health, and self-rated stress, all of which categorical variables. The categorization of each variable is outlined in supplemental table 1 below.
+
+### Health Behaviors at Baseline
+
+Smoking behavior at survey administration date will be categorized into the following categories: non-smoker; current smoker; former smoker quit \<5 years ago; former smoker quit \>5 years ago. Alcohol consumption will be represented using drinking risk scores computed through the use of the low_drink_score_fun1 which uses responses to multiple survey items to characterize individual drinking behavior into the following categories: low risk (never drank), low risk (former drinker), marginal risk, medium risk, and high risk[@lowdrinkscore].
+
+### Prescription-Related Variables
+
+Concurrent prescription of benzodiazepines and opioids/stimulants is thought to significantly increase the risk of drug-related adverse events in. To account for this potential predictor, overlapping benzodiazepine, opioid or stimulant prescriptions during the study timeframe will be derived using NMS[@sharma2020]. This will produce a dichotomous co-prescription variable coded yes/no, indicating whether each respondent was prescribed more than one type of narcotics included in this study. Prescription dose and length of prescription will also be included as potential predictors.
+
+### Survey Cycle
+
+To capture temporal variations in exposures and individual and population-level baseline risk over the period of the study, we will include survey cycle as a component of all models created in this study. This variable will be modelled as a 3-level categorical variable corresponding to each survey cycle included in this study (2013/21014, 2015/2016, and 2017/2018).
+
+## Data Analysis
+
+All analysis will be conducted in accordance with modelling procedures outline by Harell and Steyerberg[@harrell2015; @steyerberg2019]. This analysis plan was specified prior to exploration of relationship between candidate predictors and the outcomes of interest.
+
+### Data Imputation and Cleaning
+
+Prior to model building, the distribution of all continuous variables will be assessed using boxplots and descriptive stats (see below for more detail). Continuous variables that are skewed will be truncated to the 99.5th percentile. To ensure modelling stability, categorical variables with groups accounting for small proportions of respondents (\<1%) will be grouped or excluded. All missing potential predictor values will be imputed using multivariate imputation by chained equations (MICE). Missing continuous values will be imputed through predictive mean matching, dichotomous variables through logistic regression, and categorical variables with\>2 categories will have values imputed through polytomous logistic regression[@buuren2011]. Imputation models will include all-potential predictor variables and time-to-event/censoring variables, as well as any other factors believed to be informative in the generation of imputed values.
+
+### Descriptive Analysis
+
+We will begin by conducting a descriptive analysis to estimate the distribution of baseline characteristics for all CCHS participants and for individuals who have received an opioid prescription. Frequency distributions of categorical and dichotomous variables will be summarized and descriptive stats (mean, median, standard deviation, and interquartile range) will be used to assess the distribution of continuous variables. Associations between each individual confounder and the outcome variable will be described using risk ratios and 95% confidence intervals.
+
+### Trend Analysis
+
+Annual counts and crude rates of drug-related and opioid-related adverse events will be estimated, and the burden of premature drug and opioid-related deaths will be estimated using years of life lost (YLL) based on methods outlined in the Global Burden of Disease Study. These will be the primary measures to estimate trends in drug and opioid-related adverse events in both opioid-prescribed and non-opioid prescribed CCHS participants compared to the general population. These measures will be stratified by prespecified age groups (0–19 yr, 20–29 yr, 30–39 yr, 40–49 yr, 50–59 yr, 60–84 yr). Stratum specific YLL will be calculated by multiplying total number of opioid-related deaths within each stratum by the average remaining life expectancy at the midpoint of the stratum. Due to previously established evidence indicating that the risk of both drug-related and opioid-related deaths in those over the age of 85 years is small, we will exclude. Crude rates in the general population will be calculated using the total number of drug-related and population of Ontario.
+
+We will also measure the proportion of all-cause deaths in each age group attributable to drugs in general, and opioids more specifically. The Cochrane-Armitage test for trend with Monte-Carlo estimates will be used to assess the presence of statistically significant changes in the burden of drug-related and opioid-related deaths during the study period. We will also use the same methods to explore changes in the burden of deaths related to specific prescribed and unregulated opioids throughout the study period (ex. heroin derivatives and fentanyl and its analogues).
+
+### Model Specification
+
+In accordance with the approach described by Harrell, the main effects model will first be fit using the predictors outlined in table 1 below. The initial allocation of degrees freedom shown in the table is dependent on each predictors expected importance. To circumvent any potential stability issues, all continuous predictors will be flexibly modelled using restricted cubic splines with knots at fixed quantiles of distribution. The initial model specification will include all candidate predictors and potential interaction terms outlined in table 1 including 20 candidate predictors with 51 degrees of freedom (df) (41 df for candidate predictors and 10 df for potential interaction terms). Final allocation of degrees of freedom will be determined based on partial tests of association between each predictor and the outcome. These partial associations minus each predictor's df will be plotted in descending order, and variables with greater predicting potential will keep their initial df while those with lower potential will be modelled as linear terms or through the combination of infrequent categories. This approach will not increase type 1 error since no predictors, regardless of strength of association, will be excluded from the final model.
+
+### Predictive Model Estimation
+
+The initial models will be estimated using a competing risk Cox proportional hazards regression with time to drug-related adverse event being considered the outcome and death from any other cause as the competing risk. Alternative modelling approaches including the sub-distribution hazards model will also be considered. All continuous predictors will be centered about their means to improve interpretability of potential interaction terms. The proportional hazards assumption of Cox models will be assessed using both non-parametric tests and visual indicators including the plots of the scaled raw and smoothed Schoenfield residuals versus time for each predictor. Violation of this assumption will be addressed through the addition of interaction terms with log-transformed time. Multicollinearity will also be assessed using correlation matrices amongst other measures such as the Variance Inflation Factor (VIF). To address the risk of overfitting, the shrinkage estimator, based on the log-likelihood ratio chi-squared statistic, will be used to estimate the degree of overfitting of the final full model. Evidence of overfitting will be considered shrinkage\<0.90, and models will be adjusted accordingly. The resulting full model will be subject to further predictor selection using the stepdown procedure outlined by Ambler et al[@ambler2002]. In this approach, we will begin with the full model containing all variables and interactions with the final degree of freedom assignment, producing a perfect fit with an R² of 1. Subsequently, predictors with the lowest contribution to R² (the one's whose omission will cause the smallest decrease in R²) will be removed one by one until a predetermined R² threshold (0.95 in this case) is reached.
+
+### Model Validation and Performance Assessment
+
+Due to data restrictions, the final model will be internally validated using a bootstrap approach with 500 repetitions to produce stable, optimism-corrected estimates of model performance. Model performance will be assessed using a number of measures of predictive accuracy, discrimination, and calibration. Model calibration will be assessed visually using calibration plots at fixed time points. Average predicted probabilities will be compared to observed event rates derived from Kaplan Meier estimates within each predicted risk strata. Model performance will be assessed using Nagelkerke's and the Brier score. Model discrimination will be assessed using Harell's C-stat, with 95% CI is estimated using bootstrap samples.
+
+# Significance
+
+This will be the first study to assess temporal variation in risk of opioid-related and drug-related adverse events incorporating survey-based sociodemographic, behavioral and general health factors believed to impact risk of these outcomes. Furthermore, this will be the largest, and most comprehensive survey-based study to assess the risk of overdose in opioid-prescribed patients, using administrative databases and surveys to ascertain exposures and outcomes, allowing for more accurate estimates of overall risk of mortality and hospitalizations in Canadian community dwelling adults. Ultimately this study aims to create a more robust method of estimating risk of overdose in patients based on sociodemographic, health, and prescription indicators which would inform future prescription practices and allow for individualized risk assessment prior to prescription.
+
+# Supplemental Tables
+
+## Supplemental Table 1: Candidate Predictors and Model Specification
+
+| Predictor | Data Source | Variable Type | Df |
+|-----------|-------------|---------------|-----|
+| **Socio-demographics** | | | |
+| Age | CCHS | Continuous: 4 knot CUBIC spline (TBD) | 3 |
+| Sex | CCHS | Dichotomous: male, female | 1 |
+| Neighborhood social and material Deprivation | CCHS | Categorical: High, low, moderate | 2 |
+| Employment Status | CCHS | Dichotomous: employed/unemployed | 1 |
+| Household Income | CCHS | Income Quartiles | 3 |
+| Marital Status | CCHS | Dichotomous: single never married and domestic partner | 1 |
+| Rural residence | CCHS | Dichotomous: rural vs not rural | 1 |
+| Food Security | CCHS | Categorical: food secure, moderately insecure, and severely food insecure | 2 |
+| **General Health** | | | |
+| Sense of Belonging to local community | CCHS | Categorical: very strong, somewhat strong, somewhat weak, very weak | 3 |
+| Self-rated mental health | CCHS | Categorical: excellent, very good, good, fair, and poor | 4 |
+| Self-rated stress | CCHS | Categorical: very strong, somewhat strong, somewhat weak, very weak | 3 |
+| **Baseline Conditions** | | | |
+| Mood disorder including depression, bipolar disorder, mania and dysthymia | CCHS | CIDI-SF: dichotomous (yes/no based on clinical cutoff) OR Diagnosed mood disorder (Y/N) | 1 |
+| Anxiety disorders including phobia, generalized anxiety disorder or a panic disorder | CCHS | Diagnosed anxiety disorder (Y/N) | 1 |
+| Injuries within the past 12 months | CCHS | Dichotomous (Y/N) | 1 |
+| Chronic conditions including cancer, CVD, diabetes | CCHS | Dichotomous (Y/N) | 1 |
+| **Prescription information** | | | |
+| Benzodiazepine co-prescription | NMS | Dichotomous (yes/no) | 1 |
+| Prescription Dose | NMS | Categorical: low, low to moderate, moderate, moderate to high, high (based on clinical guidelines) | 4 |
+| Length of prescription | NMS | Categorical: Short Term vs long term | 1 |
+| **Chronic Pain** | | | |
+| HUI-3 | CCHS | Categorical (5 categories) | 4 |
+| **Behavioural** | | | |
+| Smoking Status | CCHS | Categorical: non-smoker; current smoker; former smoker quit <5 years ago; former smoker quit >5 years ago | 4 |
+| Alcohol Consumption Risky Behavior | CCHS | Categorical: low risk, moderate risk, high risk | 2 |
+| **Interactions** | | | |
+| Age × Mood Disorder | | | 2 |
+| Age × Sense of Belongingness | | | 6 |
+| Age × Anxiety Disorder | | | 2 |
+
+## Supplemental Table 2: Controlled Substances Included in Study
+
+### Benzodiazepines
+Alpraz, Alprazolam, Ativan, Bromazepam, Chlordiazepoxide, Clobazam, Clonazepam, Diazepam, Diastat, Flurazepam, Librax, Lorazepam, Midazolam, Mogadon, Oxazepam, Restoril, Rivotril, Temazepam, Triazolam, Xanax
+
+### Opioids
+Any formulations containing the following active ingredients: Buprenorphine, Butorphanol, Codeine, Fentanyl, Hydrocodone, Hydromorphone, Methadone, Morphine, Normethadone, Opium, Oxycodone, Oxymorphone, Pentazocine, Propoxyphene, Tapentadol, Tramadol
+
+*Note: Excludes Methadone/Normethadone/Buprenorphine when used as treatments for opioid use disorder*
+
+## Supplemental Table 3: Drug Identification Numbers (DINs)
+
+| Drug Class | DINs |
+|------------|------|
+| **Opioids** | 00050024, 00068594, 00068608, 00068756, 00095494, 00125083, 00125121, 00180041, 00293490, 00293504, 00293512, 00380571, 00392472, 00392480, 00392561, 00392588, 00443948, 00486582, 00497282-00497479, 00507407, 00514217, 00544884, 00550477, 00589470-00596965, 00607762-00608882, 00614491, 00614505, 00617059, 00617288, 00621463-00627100, 00632201-00632503, 00636681, 00636908, 00639389-00653276 (except 00645575), 00675962, 00676411, 00690198-00694827, 00705438-00725765 (except 00723770), 00776181-00779474, 00786535-00789828, 0815349-00852163, 00869317-00888346, 01901869, 01916386-01922246, 01934767, 01938363-01949055, 01964429-01966375, 01977881-01980696, 01996541-01999656, 02009706-02028174, 02047667, 02049473-02053403, 02099748, 02125323-02125390, 02126648, 02137232-02137267, 02137948-02143933, 02145863-02172917, 02177749, 02177757, 02181061-02192144, 02224577, 02229733-02229736, 02230302, 02230769, 02231934-02232658, 02234510, 02236872, 02237420-02237580, 02238645-02238670, 02240131/2, 02240285/6, 02240434, 02241377-02242006, 00242163-02242504, 02243047/63, 02243978-02244080, 02244290, 02244508, 02244790-02244797, 02245284-02245288, 02245592-02245758, 02246103, 02247374, 02247694-7701, 02248181, 02248817, 02248977, 02249391-02249936 (except 02249499), 02249928-02264846 (except 02250241 and 02256193), 02275813-02275856, 02282941-02296411 (02295695 and 02295709), 02299194-02303299, 02306530-02309912, 02311925-02314665, 02319403-02319993. *Further DINs to be determined.* |
+| **Stimulants** | 00005606, 00005614, 00584991, 00585009, 00632775, 01924516-01924567, 02004062-02006316, 02126486, 02126494, 02230321, 02230322, 02234749, 02246991, 02247364, 02247732-4, 02248808-13, 02249324/32, 02250241, 02266687, 02273950, 02277131, 02277212, 02315068-02315092 |
+| **Benzodiazepines** | 00012696, 00012718, 00013285, 00272434, 00272442, 00272450, 00313580, 00362158, 00382825, 00382841, 00399728-00434396, 00496529, 00496537, 00497754-00500852, 00511528, 00511536, 00518123-00522996, 00548359, 00548367, 00568392-00578487, 00604453, 00604461, 00618454, 00628190-00628212, 00636223, 00637742, 00637750, 00655643-00667102, 00723770, 00726362-00728209, 00808563-00813958, 00860689-00865400, 00891797, 01908170-01913506, 01995227, 02041405-0201472, 02048701-02048736, 02065614, 02103656, 02103737, 02130998, 02131013, 02137534, 02137542, 02145227-02145243, 02173344-02177188, 02177889-02179660, 02207918, 02220520-02224100, 02229756-02230102, 02230366-02230369, 02230584-02230951 (except 02230769), 02233960-02233985, 02236948, 02238334, 02238162, 02239024, 02239025, 02242077, 02242078, 02242904-02243024, 02243240-02243278, 02243611-02243935, 02244474, 02244638, 02244814-02245231, 022457584/5/6, 02247173-9, 02247490-2, 02248126/7, 02248454, 02248706, 02270641-02273047, 02297957-02298236, 02303329, 02303337, 02311593-02311615 |
+
+# References
+
+::: {#refs}
+:::
