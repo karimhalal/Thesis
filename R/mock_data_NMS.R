@@ -1,68 +1,237 @@
-###NMS DATA DESCRIPTION###
-
-#DIN- 8 digit number used to identify specific drugs. The complete list of DINs is provided in DIN.PIN column
-
-#####DAYSSUPL-######
-#  3 digit numeric variable signifying the (NAs are represented ) number of days for which the perscriprtion is expected to last (some missing values that could be coded as empty cells or NAs)
-#randomly assign these numbers using a normal distribution (the rsample function)
-
-##### DIN_DESC- ######
-# [character] DESCRIPTION OF THE DIN being used fomatted as the following: [BRAND NAME] [GENERIC NAME] [STRENGTH] [DOSAGE FORM] [ROUTE]
-#EXAMPLE: CO FENTANYL MATRIX PATCH 25MCG/H
-# the different paired DINs and descriptions available are provided in the master DIN list used for mapping
-#It is possible that some DIN and DIN Descriptions may be mismatched (do not match the pairings in the mapping sheet)
-#There are no standardized spacing convention between the elements of this variable could be a regular space, could be hyphenated, or could be missing a space sometimes
-
-####DOSAGE_FORM####
-# the dosage form of each drug perscription
-# these are the dosage forms: [Tab], [Cap], [O/L], [Sup], [Inj], [Inj-1ml Pk], [Inj Sol], [Inj Sol-1ml Pk], [Rect Sup],[Oral Drops], [ER Tab], [INJ AMP], [Oral Sol], [SR Tab], [Susp], [SR Cap], [INJ AMP-2ML PK],
-# [Tropical Sol], [Inj Sol Amp], [ER Cap], [SL Tab], [CR Cap], [CR Tab], [Rect Gel-2x 5mg Pk], [Nas Spray], [Trans Patch], [Buccal Soluble Fil], [Soluble Film Foil Pk.], [ER Inj Sol-Pref Syr], [Tab (Chewable)],
-# [Oral Concentrate (Unflavoured)], [Soluble Film], [ER Tab Chewable], [O/L 500mL], [Rect Gel-2x10mg Pk], [Rect Gel-2x15mg Pk]
-#
-
-####CURR_STAT####
-# Three category character variable (A (0.8), C(p=0.1), V(p=0.1))
-
-####DT_OF_SERV_TS####
-#Datetime of perscription, the format is a POSIXCT style (but no specific time just a date) with the baseline day being January first 1960 (01-01-1960)
-#the dates should be spaced equally throughout the period of the study
-#Applicable date range: June2012-December2021
-
-###Quantity###
-#Num8 variable (numeric variable displayed using 8 variables)- indicates the number of units dipensed in the prescription
-
-
-
-####MANUFACTURER_CD####
-#3 Letter identifier for the manufacturer (also found in DIN list)
-
-####IKN####
-#UNIQUE IDENTIFIER THAT CAN BE USED, SET A SEED FOR REPORODUCIBILITY SO THAT THE IKN can be used for example matching with other generated datasets
-
-####LICENSING COLLEGE OF PERSCRIBER####
-###the following are the variable details: 01 = The College of Physicians & Surgeons of Ontario
-#02 = Royal College of Dental Surgeons of Ontario
-#03 = College of Chiropodists of Ontario
-#05 = Out of Province
-#08 = College of Midwives of Ontario
-#09 = Ontario College of Pharmacists
-#43 = College of Optometrists of Ontario
-#44 = College of Nurses of Ontario
-#99 = Other
-#N0 = College of Naturopaths of Ontario
-
-# ============================================================================
-# MOCK NMS DATA GENERATION FUNCTION
-# ============================================================================
-
-#' Generate Mock NMS (National Medication Survey) Data
+#' @title Generate Mock NMS Data for Testing and Validation
 #'
-#' @param n_records Number of prescription records to generate
-#' @param n_patients Number of unique patients (IKN)
-#' @param din_list_path Path to the DIN list CSV file
-#' @param seed Random seed for reproducibility
-#' @return A data frame with mock NMS data
+#' @description This function generates realistic mock prescription data that mimics the structure and data quality issues
+#' found in real-world National Medication Survey (NMS) datasets used in pharmaceutical research and health administrative
+#' data analysis. The function creates synthetic prescription records with intentional data quality issues including invalid
+#' DINs, missing values, formatting inconsistencies, and mismatched descriptions to simulate real-world data cleaning challenges.
 #'
+#' The generated dataset includes multiple prescriptions per patient (IKN) and incorporates realistic distributions
+#' for prescription timing, drug quantities, dosage forms, and prescriber types. This mock data is designed for
+#' testing data cleaning pipelines, validation functions, and analytical workflows without requiring access to
+#' protected health information. The function ensures reproducibility through seed control and creates "long" format
+#' data where each row represents a single prescription record.
+#' 
+#' @param n_records [integer] The total number of prescription records to generate. Determines the size of the
+#' output dataset. Default is 10000.
+#'
+#' @param n_patients [integer] The number of unique patients (IKN values) to create. Each patient may have
+#' multiple prescription records. Must be less than or equal to n_records. Default is 2000.
+#'
+#' @param din_list_path [character] File path to the master DIN list CSV file containing valid drug identification
+#' numbers and associated metadata (brand names, strengths, dosage forms, manufacturer codes). This file is used
+#' as the reference for generating realistic prescription data. Default is "DIN _list.csv".
+#'
+#' @param seed [numeric] Random seed for reproducibility. Setting the same seed will generate identical mock
+#' datasets, which is essential for reproducible testing and validation. Default is 42.
+#'
+#' @return A data frame with n_records rows containing the following variables:
+#'   \item{IKN}{[character] Unique 10-digit patient identifier in format "IKNxxxxxxx"}
+#'   \item{DIN}{[character] 8-digit Drug Identification Number (may contain invalid/malformed entries)}
+#'   \item{DIN_DESC}{[character] Drug description including brand name, strength, dosage form with variable spacing}
+#'   \item{MANUFACTURER_CD}{[character] 3-letter manufacturer code}
+#'   \item{STRENGTH}{[character] Drug strength with units (e.g., "25mg", "50mcg/hr")}
+#'   \item{DOSAGE_FORM}{[character] Pharmaceutical dosage form (e.g., "tab", "cap", "trans patch")}
+#'   \item{DAYSSUPL}{[integer] Number of days the prescription is intended to last (may contain NAs)}
+#'   \item{QUANTITY}{[numeric] Number of units dispensed in the prescription}
+#'   \item{DT_OF_SERV_TS}{[POSIXct] Date of service/prescription (ranges from June 2012 to December 2021)}
+#'   \item{CURR_STAT}{[character] Current status code: "A" (active), "C" (cancelled), or "V" (void)}
+#'   \item{LICENSING_COLLEGE_PRESCRIBER}{[character] Two-digit/character code for prescriber's licensing college}
+#'
+#' @details This function generates mock data with realistic data quality issues to simulate real-world datasets. The function
+#' uses a master DIN list as reference and introduces controlled variations and errors to create testing scenarios.
+#'
+#'          **Variable Descriptions and Data Generation:**
+#'
+#'          *IKN (ICES Key Number):*
+#'          - Unique patient identifier that can be used for record linkage across datasets
+#'          - Format: "IKNxxxxxxx" (7 random digits with "IKN" prefix)
+#'          - Generated with reproducible seed to enable consistent cross-dataset matching
+#'          - Each patient (IKN) can have multiple prescription records
+#'
+#'          *DIN (Drug Identification Number):*
+#'          - 8-digit number used to identify specific drugs in Canada
+#'          - Complete list of valid DINs provided in the DIN_PIN column of the master DIN list
+#'          - **Data quality issues intentionally introduced:**
+#'            - 85% valid DINs from master list
+#'            - 10% junk/invalid values (wrong length, not in master list)
+#'            - 3% missing values (NA)
+#'            - 2% malformed (hyphens, extra zeros, partial DINs)
+#'
+#'          *DIN_DESC (Drug Description):*
+#'          - Character string formatted as: [BRAND NAME] [GENERIC NAME] [STRENGTH] [DOSAGE FORM] [ROUTE]
+#'          - Example: "CO FENTANYL MATRIX PATCH 25MCG/H"
+#'          - Paired with DIN values from the master DIN mapping list
+#'          - **Spacing variations:** normal spaces, hyphens, or missing spaces (no standardization)
+#'          - 5% of records have intentionally mismatched DIN/DIN_DESC pairings
+#'
+#'          *DOSAGE_FORM:*
+#'          - Pharmaceutical dosage form of each prescription
+#'          - Available forms include: Tab, Cap, O/L, Sup, Inj, Inj-1ml Pk, Inj Sol, Inj Sol-1ml Pk, Rect Sup,
+#'            Oral Drops, ER Tab, INJ AMP, Oral Sol, SR Tab, Susp, SR Cap, INJ AMP-2ML PK, Topical Sol,
+#'            Inj Sol Amp, ER Cap, SL Tab, CR Cap, CR Tab, Rect Gel-2x 5mg Pk, Nas Spray, Trans Patch,
+#'            Buccal Soluble Fil, Soluble Film Foil Pk., ER Inj Sol-Pref Syr, Tab (Chewable),
+#'            Oral Concentrate (Unflavoured), Soluble Film, ER Tab Chewable, O/L 500mL,
+#'            Rect Gel-2x10mg Pk, Rect Gel-2x15mg Pk
+#'          - Extracted from master DIN list for valid DINs; randomly assigned for invalid DINs
+#'
+#'          *STRENGTH:*
+#'          - Drug strength with units (e.g., "25mg", "50mcg/hr", "10mg/ml")
+#'          - Format varies by dosage form (mg for oral, mcg/hr for patches, mg/ml for liquids)
+#'          - Extracted from master DIN list for valid DINs; randomly generated for invalid DINs
+#'
+#'          *DAYSSUPL (Days Supply):*
+#'          - 3-digit numeric variable indicating number of days prescription is expected to last
+#'          - Generated using normal distribution: mean = 30 days, sd = 15 days
+#'          - Constrained to range 1-365 days
+#'          - **Missing values:** 5% of records coded as NA (empty cells)
+#'
+#'          *QUANTITY:*
+#'          - Numeric variable (8-digit display format) indicating number of units dispensed
+#'          - Distribution varies by dosage form:
+#'            - Transdermal patches: mean = 10, sd = 2
+#'            - Tablets/capsules: mean = 60, sd = 30
+#'            - Oral liquids/syrups: mean = 2, sd = 1 (representing bottles)
+#'            - Injections: mean = 3, sd = 2
+#'            - Default: mean = 30, sd = 15
+#'
+#'          *DT_OF_SERV_TS (Date of Service - Timestamp):*
+#'          - POSIXct datetime format (date only, no time component)
+#'          - Baseline: January 1, 1960 (01-01-1960)
+#'          - **Study period:** June 2012 to December 2021
+#'          - Dates distributed approximately equally throughout period with ±1 day random variation
+#'
+#'          *CURR_STAT (Current Status):*
+#'          - Three-category character variable indicating prescription status
+#'          - "A" (Active): 90% - valid, dispensed prescriptions
+#'          - "C" (Cancelled): 5% - cancelled before dispensing
+#'          - "V" (Void): 5% - voided/reversed prescriptions
+#'          - Note: C and V records should typically be filtered out during analysis
+#'
+#'          *MANUFACTURER_CD (Manufacturer Code):*
+#'          - 3-letter identifier for pharmaceutical manufacturer
+#'          - Extracted from master DIN list (matched to DIN)
+#'          - Examples: "NOV", "VAL", "HLR", "PFP", "PMS", "RPH"
+#'          - Randomly assigned for invalid DINs
+#'
+#'          *LICENSING_COLLEGE_PRESCRIBER:*
+#'          - Two-character code identifying prescriber's regulatory college
+#'          - Distribution:
+#'            - "01" = College of Physicians & Surgeons of Ontario (75%)
+#'            - "02" = Royal College of Dental Surgeons of Ontario (2%)
+#'            - "03" = College of Chiropodists of Ontario (1%)
+#'            - "05" = Out of Province (5%)
+#'            - "08" = College of Midwives of Ontario (1%)
+#'            - "09" = Ontario College of Pharmacists (5%)
+#'            - "43" = College of Optometrists of Ontario (2%)
+#'            - "44" = College of Nurses of Ontario (5%)
+#'            - "99" = Other (3%)
+#'            - "N0" = College of Naturopaths of Ontario (1%)
+#'
+#'          **Data Structure:**
+#'          - Output is in "long" format: one row per prescription record
+#'          - Multiple prescriptions per patient (IKN) are represented as separate rows
+#'          - Records sorted by IKN and DT_OF_SERV_TS (chronological order within each patient)
+#'
+#'          **Reproducibility:**
+#'          - Multiple seeds used throughout generation (seed, seed+1, seed+2, etc.)
+#'          - Setting same seed value ensures identical output for testing and validation
+#'          - Critical for creating matched mock datasets across different data sources
+#'
+#'  @examples
+#' # Generate mock data with specified parameters
+#' mock_nms <- generate_mock_nms_data(
+#'   n_records = 10000,
+#'   n_patients = 2000,
+#'   din_list_path = "DIN _list.csv",
+#'   seed = 42
+#' )
+#'
+#' # View first few records
+#' head(mock_nms)
+#'
+#' # Check structure
+#' str(mock_nms)
+#'
+#' # Summary statistics
+#' summary(mock_nms)
+#'
+#' # Save to CSV
+#' write.csv(mock_nms, "mock_nms_data.csv", row.names = FALSE)
+#'
+#' # Generate smaller dataset for testing and validation
+#' test_data <- generate_mock_nms_data(
+#'   n_records = 1000,
+#'   n_patients = 200,
+#'   din_list_path = "DIN _list.csv",
+#'   seed = 123
+#' )
+#'
+#' # Generate large dataset with custom seed
+#' large_data <- generate_mock_nms_data(
+#'   n_records = 50000,
+#'   n_patients = 10000,
+#'   seed = 2024
+#' )
+#'
+#' # Database usage with dplyr
+#' library(dplyr)
+#' mock_nms <- generate_mock_nms_data(n_records = 5000, n_patients = 1000)
+#'
+#' # Filter to valid prescriptions only (active status, no missing values)
+#' valid_prescriptions <- mock_nms %>%
+#'   filter(CURR_STAT == "A", !is.na(DIN), !is.na(DAYSSUPL))
+#'
+#' # Count prescriptions per patient
+#' patient_summary <- mock_nms %>%
+#'   group_by(IKN) %>%
+#'   summarise(
+#'     n_prescriptions = n(),
+#'     first_prescription = min(DT_OF_SERV_TS),
+#'     last_prescription = max(DT_OF_SERV_TS)
+#'   )
+#'
+#' # Examine data quality issues
+#' data_quality <- mock_nms %>%
+#'   summarise(
+#'     total_records = n(),
+#'     missing_din = sum(is.na(DIN)),
+#'     missing_dayssupl = sum(is.na(DAYSSUPL)),
+#'     cancelled_void = sum(CURR_STAT %in% c("C", "V"))
+#'   )
+#'
+#' # Basic usage with default parameters
+#' mock_data <- generate_mock_nms_data()
+#' head(mock_data)
+#'
+#' # Generate smaller dataset for testing
+#' test_data <- generate_mock_nms_data(
+#'   n_records = 1000,
+#'   n_patients = 200,
+#'   din_list_path = "DIN _list.csv",
+#'   seed = 123
+#' )
+#'
+#' # Generate large dataset with custom seed
+#' large_data <- generate_mock_nms_data(
+#'   n_records = 50000,
+#'   n_patients = 10000,
+#'   seed = 2024
+#' )
+#'
+#' # Database usage with dplyr
+#' library(dplyr)
+#' mock_nms <- generate_mock_nms_data(n_records = 5000, n_patients = 1000)
+#'
+#' # Filter to valid prescriptions only
+#' valid_prescriptions <- mock_nms %>%
+#'   filter(CURR_STAT == "A", !is.na(DIN), !is.na(DAYSSUPL))
+#'
+#' # Count prescriptions per patient
+#' patient_summary <- mock_nms %>%
+#'   group_by(IKN) %>%
+#'   summarise(n_prescriptions = n())
+#'
+#' @export
 generate_mock_nms_data <- function(
     n_records = 10000,
     n_patients = 2000,
@@ -83,12 +252,12 @@ generate_mock_nms_data <- function(
   # Clean column names (remove dots from imported column names)
   names(din_master) <- gsub("\\.", "_", names(din_master))
 
-  # ============================================================================
+  # 
   # 1. Generate IKN (Patient Identifiers)
-  # ============================================================================
+  #
   # Create unique patient IDs with seed for reproducibility
   set.seed(seed)
-  unique_ikn <- sprintf("IKN%07d", sample(1000000:9999999, n_patients, replace = FALSE))
+  unique_ikn <- sample(100000000:999999999, n_patients, replace = FALSE)
 
   # Assign IKNs to records (patients can have multiple prescriptions), this function code "long" raw data
   set.seed(seed + 1)
@@ -297,9 +466,9 @@ generate_mock_nms_data <- function(
     prob = c(0.9, 0.05, 0.05)
   )
 
-  # ============================================================================
+  #
   # 8. Generate DT_OF_SERV_TS (Date of Service)
-  # ============================================================================
+  #
   # Date range: June 2012 to December 2021
   start_date <- as.POSIXct("2012-06-01", tz = "UTC")
   end_date <- as.POSIXct("2021-12-31", tz = "UTC")
@@ -312,10 +481,9 @@ generate_mock_nms_data <- function(
   # Convert to date only (no time component)
   dt_of_serv_ts <- as.POSIXct(format(dt_of_serv_ts, "%Y-%m-%d"), tz = "UTC")
 
-  # ============================================================================
+  # 
   # 9. Generate QUANTITY (Number of Units Dispensed)
-  # ============================================================================
-  # Typically follows a distribution based on dosage form
+  # 
   set.seed(seed + 9)
 
   quantity <- sapply(dosage_form, function(form) {
@@ -352,9 +520,7 @@ generate_mock_nms_data <- function(
     prob = c(0.75, 0.02, 0.01, 0.05, 0.01, 0.05, 0.02, 0.05, 0.03, 0.01)
   )
 
-  # ============================================================================
-  # Create Final Data Frame
-  # ============================================================================
+  
   nms_mock_data <- data.frame(
     IKN = ikn,
     DIN = din,
@@ -376,27 +542,3 @@ generate_mock_nms_data <- function(
 
   return(nms_mock_data)
 }
-
-# ============================================================================
-# Example Usage
-# ============================================================================
-
-# Generate mock data
-# mock_nms <- generate_mock_nms_data(
-#   n_records = 10000,
-#   n_patients = 2000,
-#   din_list_path = "DIN _list.csv",
-#   seed = 42
-# )
-#
-# # View first few records
-# head(mock_nms)
-#
-# # Check structure
-# str(mock_nms)
-#
-# # Summary statistics
-# summary(mock_nms)
-#
-# # Save to CSV
-# write.csv(mock_nms, "mock_nms_data.csv", row.names = FALSE)
