@@ -25,14 +25,16 @@
 #' @param IKN [character] unique person identifier used to link multiple different datasets. Will be used as the flattening variable.
 #' IKN is a unique 10 digit identifier used to link different datasets
 #' 
+#' @param DIN_DESC [character] description of each perscription. To be included in the final
+#' 
 #' @return A data frame with one row per individual (IKN) containing the following additional variables:
 #'   \item{avg_daily_bzd_meq}-Average daily BZD milligram equivalents during initial period
 #'   \item{avg_daily_opioid_meq}-Average daily opioid milligram equivalents during initial period
 
 #'
 #' @details This function will take into account the period directly following the first perscription of opioids or bzds. This
-#' period will cover the length of the first perscription or the month following the perscription date (whichever spans a 
-#' longer time period). The function uses the days suuply and perscription date variable. The function
+#' period will cover the length of the first perscription. The function uses the days suuply and perscription date variable. The function
+#' handles NAs as follows:
 #'
 #'          **Missing Data Codes:**
 #'          - Propagates tagged NAs from the input `meq`.
@@ -57,7 +59,7 @@
 #' # nms_data %>%
 #' #  group_by ( = categorize_MEQ_risk(meq))
 #' @export
-avg_dose<-function(IKN, MEQ, DAYSSUPL, DT_OF_SERV_TS, DIN){
+avg_dose_baseline<-function(IKN, MEQ, DAYSSUPL, DT_OF_SERV_TS, DIN, DIN_DESC, MANUFACTURER_CD, STRENGTH){
   #load the existing DIN list if the argument is NULL
   if(!exists("din_list")){
     config<-yaml::yaml.load_file("config.yml")
@@ -72,7 +74,10 @@ avg_dose<-function(IKN, MEQ, DAYSSUPL, DT_OF_SERV_TS, DIN){
     MEQ= MEQ,
     DAYSSUPL=DAYSSUPL,
     DT_OF_SERV_TS=DT_OF_SERV_TS,
-    DIN=DIN
+    DIN=DIN,
+    DIN_DESC=DIN_DESC,
+    MANUFACTURER_CD=MANUFACTURER_CD,
+    STRENGTH=STRENGTH
   )
   
   #opioid/bzd classification or each individuals perscription
@@ -88,22 +93,21 @@ avg_dose<-function(IKN, MEQ, DAYSSUPL, DT_OF_SERV_TS, DIN){
     #group the dataset by IKN and establish chronological order of perscriptions for each individual
     dplyr::group_by(IKN)%>%
     dplyr::arrange(DT_OF_SERV_TS, .by_group = TRUE)%>%
-    #use summarise function to generate flat file conserving all perscriptions per IKN and generating start and end dates for initial perscription
+    #use summarise function to generate one summary per IKN corresponding
     dplyr::summarise({      
       #identify the first relevant (opioid/bzd) perscription and the duration of that perscription
       first_per<-min(DT_OF_SERV_TS, na.rm = TRUE)
       first_per_day<-DAYSSUPL[DT_OF_SERV_TS==first_per]
       
-      #generate observation period. The observation period will be a minimum of 30 days.
-      #if initial perscription spans longer than 30 days. The initial perscription period will be
-      period_days<-max(first_per_day, 30, na.rm = T)
+      #generate observation period. The observation period will be the duration of the first perscription
+      period_days<-first_per_day
       cutoff_period<-first_per_day+lubridate::days(period_days)
       
       #idenitfy all perscriptions that occur within the dates previously established as the observation period
       within_period<-DT_OF_SERV_TS<=cutoff_period & DT_OF_SERV_TS>=first_per
 
       #compute total opioid equivalents
-      total_opioid_eq<-sum(ifelse(within_period&drug_class=="opioid",
+      total_opioid_eq<-sum(ifelse(within_period && drug_class=="opioid",
       MEQ*DAYSSUPL,
       0),
       na.rm=T)

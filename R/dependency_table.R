@@ -30,6 +30,6 @@ deps_tbl <- tibble(
   dependencies = map_chr(deps_list, ~ paste(sort(unique(.x[[1]])), collapse = ", "))
 )
 
-write.csv(deps_tbl, file="/Users/karimhalal/Desktop/The worlds greatest thesis/Thesis/worksheets/deps_tbl.csv")
+write.csv(deps_tbl, file=here::here("worksheets/deps_tbl.csv"))
 
 

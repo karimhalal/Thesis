@@ -3,7 +3,7 @@
 #' 
 
 #load din_list and necessary libraries
-din_list<-read.csv("/Users/karimhalal/Desktop/The worlds greatest thesis/Thesis/worksheets/DIN _list.csv")
+din_list<-read.csv(here::here("worksheets/DIN _list.csv"))
 library(dplyr)
 library(stringr)
 
@@ -36,7 +36,7 @@ din_list<-din_list%>%
     grepl("opioid", Active.Ingredient.Class.and.Use) & grepl("hydromorphone", Active.Ingredients) ~ 5,
     grepl("opioid", Active.Ingredient.Class.and.Use) & grepl("hydrocodone", Active.Ingredients) ~ 1,
     grepl("opioid", Active.Ingredient.Class.and.Use) & grepl("meperidine", Active.Ingredients) ~ 0.1,
-    grepl("opioid", Active.Ingredient.Class.and.Use) & grepl("tramadol", Active.Ingredients) ~ 1,
+    grepl("opioid", Active.Ingredient.Class.and.Use) & grepl("tramadol", Active.Ingredients) ~ 0.1,
     grepl("opioid", Active.Ingredient.Class.and.Use) & grepl("dihydrocodeine", Active.Ingredients) ~ 0.25,
     grepl("opioid", Active.Ingredient.Class.and.Use) & grepl("pentazocine", Active.Ingredients) ~ 0.25,
     grepl("opioid", Active.Ingredient.Class.and.Use) & grepl("tapentadol", Active.Ingredients) ~ 0.3,
@@ -47,7 +47,7 @@ din_list<-din_list%>%
     grepl("opioid", Active.Ingredient.Class.and.Use) & grepl("buprenorphine", Active.Ingredients) & grepl("film", Dosage.Form)~ 0.039,
     grepl("opioid", Active.Ingredient.Class.and.Use) & grepl("fentanyl", Active.Ingredients)& grepl("trans patch", Dosage.Form) ~ 4.2,
     grepl("opioid", Active.Ingredient.Class.and.Use) & grepl("fentanyl", Active.Ingredients)& grepl("buccal soluble fil|tab", Dosage.Form) ~ 0.13,
-    TRUE ~ NA_real_
+    TRUE ~ conversion_factor
   ))%>%
   #Exclude medications for which the strength of evidence for conversion is weak. This includes butorphanol and diphenoxylate (methadone and buprenorphine)
   filter(!grepl("diphenoxylate", Active.Ingredients))%>%

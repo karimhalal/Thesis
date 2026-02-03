@@ -1,3 +1,4 @@
+source(here::here("R/DIN_utils.R"))
 #' @title Categorical Dose Function (cumulative)
 #'
 #' @description This function categorizes equivalent units into dose levels
@@ -53,34 +54,26 @@
 #' 
 #'
 #' @export
-dose_cat_fun() <- function(meq_daily, DIN, DIN_LIST=NULL) {
+dose_cat_fun<- function(meq_daily, DIN, din_list=NULL) {
   
   # Load DIN list if not provided
-  if (is.null(din_list)) {
-    din_list <- get_din_list_combined()  # Loads all drug classes
+  if(!exists(din_list)){
+    din_list<-get_din_list_combined()
+    din_list<-din_list[["din_list"]]
   }
   
   # Create input data frame to extract required columns from dataset
   input_data <- tibble::tibble(
-    DIN.PIN = DIN,
+    DIN = DIN,
     meq_daily = meq_daily
   )
   
   # Join with DIN list to get drug class
   result <- input_data %>%
-    dplyr::left_join(
-      din_list %>% 
-        dplyr::select(DIN.PIN, Active.Ingredient.Class.and.Use),
-      by = "DIN.PIN"
-    ) %>%
-    dplyr::mutate(
-      # create temporary drug class variable from notes enclosed in the Active ingredient class and use column in datasheet
-      drug_class = dplyr::case_when(
-        is.na(Active.Ingredient.Class.and.Use) ~ NA_character_,
-        grepl("opioid", Active.Ingredient.Class.and.Use, ignore.case = TRUE) ~ "opioid",
-        grepl("bzd", Active.Ingredient.Class.and.Use, ignore.case = TRUE) ~ "bzd",
-        TRUE ~ "other"
-      ),
+     dplyr::mutate(drug_class= dplyr::case_when(
+      DIN %in% get_dins_by_class("opioid", din_list)~"opioid", 
+      DIN %in% get_dinlist_by_class("bzd", din_list)~"bzd"
+     ),
       
       # Categorize based on drug class and dose
       dose_category = .categorize_by_drug_class(meq_daily, drug_class)
@@ -106,12 +99,12 @@ dose_cat_fun() <- function(meq_daily, DIN, DIN_LIST=NULL) {
     # Drug class could not be determined
     is.na(drug_class) | drug_class == "other" ~ haven::tagged_na("d"),
     
-    # === OPIOID CATEGORIES (MEQ) ===
+    # OPIOID CATEGORIES (MEQ)
     drug_class == "opioid" & meq_daily < 50 ~ 1L,
     drug_class == "opioid" & meq_daily >= 50 & meq_daily < 100 ~ 2L,
     drug_class == "opioid" & meq_daily >= 100 ~ 3L,
     
-    # === BENZODIAZEPINE CATEGORIES (DME) ===
+    # BZD
     drug_class == "bzd" & meq_daily <= 5 ~ 1L,
     drug_class == "bzd" & meq_daily > 5 & meq_daily < 15 ~ 2L,
     drug_class == "bzd" & meq_daily >= 15 ~ 3L,
