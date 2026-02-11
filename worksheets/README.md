@@ -8,6 +8,7 @@ This directory contains sheets outlining the the structure of variables used in 
 worksheets/
 ├── NMS_sheets/          #  Narcotics Measures System (NMS) related data
 ├── cchs_sheets/         # Canadian Community Health Survey (CCHS) variable mappings
+├── 
 └── deps_tbl.csv         # Dependencies table for ICES environment setup
 ```
 
