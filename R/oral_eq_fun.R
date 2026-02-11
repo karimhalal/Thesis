@@ -94,7 +94,7 @@ cchs_config<-yaml::yaml.load_file("config.yml", eval.expr= TRUE)
 
 # Load variable sheets using the paths from the config file.
 # This ensures you are always using the correct, centrally-defined files.
-din_list <- read.csv(cchs_config$default$variable$din_list_oral, fileEncoding = "UTF-8-BOM")
+din_list_oral <- read.csv(cchs_config$default$variable$din_list_oral, fileEncoding = "UTF-8-BOM")
 #'#file management still under development. DIN_list will be called manually
 #'#
 #' # Multiple prescriptions, processing occurs before flat-filing, each row corresponds to unique perscription
@@ -133,7 +133,7 @@ input_data <- tibble::tibble(
   
   # Join with conversion factors from din_list and calculate MEQ
   result <- input_data %>%
-    dplyr::left_join(din_list, by = "DIN.PIN") %>%
+    dplyr::left_join(din_list_oral, by = "DIN.PIN") %>%
     dplyr::mutate(
       MEQ = dplyr::case_when(
         # Missing or invalid DIN

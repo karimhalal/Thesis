@@ -5,7 +5,7 @@ default:
     variable_details: !expr here::here("worksheets", "cchs_sheets", "cchsflow_variables_details1.csv")
     din_list_oral: !expr here::here("worksheets", "NMS_sheets", "din_list_oral.csv")
     din_list_transdermal: !expr here::here("worksheets", "NMS_sheets", "din_list_transdermal.csv")
-    din_list: !expr here::here("worksheets","NMS_sheets", "DIN_list.csv")
+    din_list: !expr here::here("worksheets","NMS_sheets", "DIN_list2.csv")
   modules: NULL
   data_type: ".RData"
   data:

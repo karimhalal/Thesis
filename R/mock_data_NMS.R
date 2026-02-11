@@ -235,7 +235,7 @@
 generate_mock_nms_data <- function(
     n_records = 10000,
     n_patients = 2000,
-    din_list_path = "DIN _list.csv",
+    din_list_path = NULL,
     seed = 42
 ) {
 

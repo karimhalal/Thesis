@@ -8,10 +8,11 @@
 #' of their dose to their equivalent amount in milligrams of morphine.
 #' 
 #' 
-#' This function only applies to drugs with trandermal routes of administration.
+#' Due to difference in applications and dosing, this function only applies to drugs with trandermal 
+#' routes of administration
 #' 
 #'
-#' This function utilizes dependencies from both NMS dataset and DIN_list set, using
+#' This function utilizes dependencies from both NMS dataset and DIN_list transdermal subset, using
 #' each drug's unique identification number (DIN) to link both datasets to map each drug
 #' in NMS dataset to its corresponding characteristics in din_list_transdermal.
 #' 
@@ -30,7 +31,7 @@
 #' 
 #' Where:
 #' Q = qunaitty on the NMS claim (in units of administration)
-#' D = strength of drug. A variable derived from NMS through conversion of internal
+#' D = strength of transdermal drug. A variable derived from NMS through conversion of internal
 #' dose variable (character) into a numeric variable (see dose_conv_func)
 #' DS = Days supply of drug- an apporximation of number of days 
 #' CF= Drug-specific conversion factor derived from Adams et. al (2025) and Gomes et. al (2022)
@@ -42,7 +43,7 @@
 #' NMS entry to the corresponding drug class and active ingredient in the 
 #' DIN_list datasheet
 #'
-#' @param STRENGTH dose of each individual unit of perscription drug
+#' @param num_dose [numeric] dose of each individual unit of perscription drug
 #'
 #' @param class drug class. In order for MEQ to be computed, CLASS must=="Opioid"
 #'
