@@ -91,8 +91,11 @@ dose_parse_fun<-function(data, din = NULL, dosage_form = NULL, STRENGTH = NULL, 
   #check if input is a dataframe or vectors
 
   if(is.data.frame(data)){
-    #dataframe input: use existing columns
+    #dataframe input: rename to expected internal names if column name arguments provided as strings
     df <- data
+    if(!is.null(din))         names(df)[names(df) == din]         <- "din"
+    if(!is.null(STRENGTH))    names(df)[names(df) == STRENGTH]    <- "STRENGTH"
+    if(!is.null(dosage_form)) names(df)[names(df) == dosage_form] <- "dosage_form"
   } else {
     #vector input: create dataframe from vectors
     df <- data.frame(din = data, dosage_form = dosage_form, STRENGTH = STRENGTH, stringsAsFactors = FALSE)
@@ -101,8 +104,8 @@ dose_parse_fun<-function(data, din = NULL, dosage_form = NULL, STRENGTH = NULL, 
   #fill in missing STRENGTH and correct multiple/improper dosages
   df<-df%>%
     mutate(STRENGTH_harmonized= case_when(
-      STRENGTH == "" | is.na(STRENGTH) ~ din_list$STRENGTH[match(din, din_list$DIN.PIN)],
       din %in% din_list_cor$DIN.PIN ~ din_list_cor$Active.Ingredient.Dose[match(din, din_list_cor$DIN.PIN)],
+      STRENGTH == "" | is.na(STRENGTH) ~ din_list$STRENGTH[match(din, din_list$DIN.PIN)],
       TRUE ~ STRENGTH
     ),
       dose_group= case_when(
@@ -110,7 +113,9 @@ dose_parse_fun<-function(data, din = NULL, dosage_form = NULL, STRENGTH = NULL, 
         din%in%din_vec_transdermal~ "transdermal",
         din%in%din_vec_liquid~"liquid",
         TRUE~"other"
-    ))
+    ))%>%
+  #join other drug metadata to perscriptions
+  dplyr::left_join(din_list_comb%>%select(Active.Ing, Drug.Class, conversion_factor), by="din")
 
   #regex patterns for liquid forms
   liquid_pattern_perml<-"(\\d{1,3}(?:\\.\\d+)?(mg|mcg)/ml)"
