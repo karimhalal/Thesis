@@ -1,6 +1,6 @@
 # load relevant source code
 
-source(here::here("R", "DIN_utils.R"))
+source(here::here("R", "DIN_utils_df.R"))
 
 #' @title Dose Parsing Function
 #'
@@ -78,7 +78,7 @@ dose_parse_fun<-function(data, din = NULL, dosage_form = NULL, STRENGTH = NULL, 
 
   #load mapping datasets if none have been previously loaded
   if(is.null(din_list_comb)){
-    din_list_comb<-get_din_list_combined()
+    din_list_comb<-get_din_list_cor()
   }
 
   #load relvant vectors and tables
@@ -115,7 +115,10 @@ dose_parse_fun<-function(data, din = NULL, dosage_form = NULL, STRENGTH = NULL, 
         TRUE~"other"
     ))%>%
   #join other drug metadata to perscriptions
-  dplyr::left_join(din_list_comb%>%select(Active.Ing, Drug.Class, conversion_factor), by="din")
+  dplyr::left_join(din_list%>%select(DIN.PIN, Active.Ing, Drug.Class, conversion_factor), by=c("din"="DIN.PIN"))
+
+  #normalize STRENGTH_harmonized case before regex matching (e.g. "mL" -> "ml")
+  df <- df %>% dplyr::mutate(STRENGTH_harmonized = tolower(STRENGTH_harmonized))
 
   #regex patterns for liquid forms
   liquid_pattern_perml<-"(\\d{1,3}(?:\\.\\d+)?(mg|mcg)/ml)"
@@ -140,3 +143,4 @@ dose_parse_fun<-function(data, din = NULL, dosage_form = NULL, STRENGTH = NULL, 
   return(df)
 
 }
+

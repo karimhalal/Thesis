@@ -1,0 +1,83 @@
+#' @title Flatten NMS Prescription Data to One Row Per Patient
+#'
+#' @description Converts NMS data from long format (one row per prescription) to wide
+#' format (one row per patient / IKN). Each prescription becomes a numbered set of
+#' columns: \code{DIN_1}, \code{STRENGTH_1}, \code{DAYSSUPL_1}, ..., \code{DIN_2},
+#' \code{STRENGTH_2}, \code{DAYSSUPL_2}, etc., ordered chronologically within each patient.
+#'
+#' All prescription-level columns are preserved. Patients with fewer prescriptions than
+#' the maximum will have \code{NA} in the corresponding numbered columns.
+#'
+#' @param nms_data [data.frame / tibble] NMS dataset in long format. Expected columns:
+#'   \code{IKN}, \code{DIN}, \code{STRENGTH}, \code{DOSAGE_FORM}, \code{DAYSSUPL},
+#'   \code{QUANTITY}, \code{DT_OF_SERV_TS}, and any other prescription-level columns
+#'   (e.g. \code{conversion_factor}, \code{DIN_DESC}, \code{CURR_STAT}).
+#'
+#' @param id_col [character] Name of the patient identifier column. Default is \code{"IKN"}.
+#'
+#' @param sort_by [character] Name of the column used to order prescriptions within each
+#'   patient before pivoting (chronological order). Default is \code{"DT_OF_SERV_TS"}.
+#'
+#' @return A tibble with one row per unique patient. Column structure:
+#'   \item{IKN}{Patient identifier (or the column named by \code{id_col})}
+#'   \item{n_prescriptions}{Total number of prescription records for this patient}
+#'   \item{DIN_1, STRENGTH_1, DAYSSUPL_1, ...}{All fields from the 1st prescription}
+#'   \item{DIN_2, STRENGTH_2, DAYSSUPL_2, ...}{All fields from the 2nd prescription}
+#'   \item{...}{Continues up to the maximum number of prescriptions across all patients}
+#'
+#' Columns for prescription \emph{k} are \code{NA} for patients with fewer than \emph{k}
+#' prescriptions.
+#'
+#' @details
+#' Prescriptions within each patient are sorted by \code{sort_by} before numbering, so
+#' \code{_1} always refers to the earliest prescription and \code{_n} to the latest.
+#'
+#' To return to long format, use \code{tidyr::pivot_longer()} on the \code{_[0-9]+} columns.
+#'
+#' @examples
+#' mock_nms <- generate_mock_nms_data(n_records = 1000, n_patients = 200)
+#' flat <- flatten_nms(mock_nms)
+#'
+#' # Inspect output
+#' head(flat[, 1:10])
+#' flat$DIN_1
+#' flat$DT_OF_SERV_TS_3  # Date of 3rd prescription (NA if patient has < 3)
+#'
+#' @export
+flatten_nms <- function(nms_data, id_col = "IKN", sort_by = "DT_OF_SERV_TS") {
+
+  if (!id_col %in% names(nms_data)) {
+    stop(sprintf("id_col '%s' not found in nms_data. Available columns: %s",
+                 id_col, paste(names(nms_data), collapse = ", ")))
+  }
+
+  if (!sort_by %in% names(nms_data)) {
+    warning(sprintf("sort_by column '%s' not found. Prescriptions will not be sorted.", sort_by))
+    sorted_data <- nms_data
+  } else {
+    sorted_data <- dplyr::arrange(nms_data, .data[[id_col]], .data[[sort_by]])
+  }
+
+  rx_cols <- setdiff(names(nms_data), id_col)
+
+  # Count prescriptions per patient before pivoting
+  n_rx <- sorted_data %>%
+    dplyr::group_by(.data[[id_col]]) %>%
+    dplyr::summarise(n_prescriptions = dplyr::n(), .groups = "drop")
+
+  flat <- sorted_data %>%
+    dplyr::group_by(.data[[id_col]]) %>%
+    dplyr::mutate(.rx_num = dplyr::row_number()) %>%
+    dplyr::ungroup() %>%
+    tidyr::pivot_wider(
+      id_cols     = dplyr::all_of(id_col),
+      names_from  = .rx_num,
+      values_from = dplyr::all_of(rx_cols),
+      names_glue  = "{.value}_{.name}",
+      names_vary  = "slowest"
+    ) %>%
+    dplyr::left_join(n_rx, by = id_col) %>%
+    dplyr::relocate(n_prescriptions, .after = dplyr::all_of(id_col))
+
+  return(flat)
+}

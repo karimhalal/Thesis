@@ -135,7 +135,7 @@ input_data <- tibble::tibble(
   result <- input_data %>%
     dplyr::left_join(din_list_oral, by = "DIN.PIN") %>%
     dplyr::mutate(
-      MEQ = dplyr::case_when(
+      meq_daily = dplyr::case_when(
         # Missing or invalid DIN
         is.na(DIN) | DIN == "" ~ haven::tagged_na("b"),
         
@@ -159,7 +159,7 @@ input_data <- tibble::tibble(
         .default = haven::tagged_na("b")
       )
     ) %>%
-    dplyr::pull(MEQ)
+    dplyr::pull(meq_daily)
   
   return(result)
 }
