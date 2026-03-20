@@ -31,15 +31,15 @@ source(here::here("R", "tanspatch_eq_fun.R"))
 #' @seealso calculate_oral_eq.R, and calculate_transpatch_eq.R
 #'
 #' @export
-calculate_dose_standardization <- function(.data) {
+calculate_dose_standardization <- function(input_data) {
   # Preserve original row order
-  input_data <- dplyr::mutate(.data, .row_id = dplyr::row_number())
+  input_data <- dplyr::mutate(input_data, .row_id = dplyr::row_number())
 
   # Routing condition: transdermal opioids vs everything else
   is_transpatch <- !is.na(input_data$class) &
-    !is.na(input_data$dosage_form) &
-    input_data$class       == "Opioid" &
-    input_data$dosage_form == "transdermal"
+    !is.na(input_data$dose_group) &
+    input_data$class      == "Opioid" &
+    input_data$dose_group == "transdermal"
 
   data_transpatch <- input_data[is_transpatch, ]
   data_oral       <- input_data[!is_transpatch, ]

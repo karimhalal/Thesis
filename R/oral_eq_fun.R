@@ -124,16 +124,16 @@ din_list_oral <- read.csv(cchs_config$default$variable$din_list_oral, fileEncodi
 #' DOI: 10.1097/j.pain.0000000000003529
 #' 
 #' @export
-calculate_oral_eq <- function(.data = NULL, DIN.PIN = NULL, DAYSSUPL = NULL, QUANTITY = NULL, STRENGTH = NULL) {
+calculate_oral_eq <- function(.data = NULL, din = NULL, dayssupl = NULL, quantity = NULL, dose_num = NULL) {
   # Accept either a dataframe or individual vectors
   if (!is.null(.data)) {
     input_data <- .data
   } else {
     input_data <- tibble::tibble(
-      DIN.PIN  = DIN.PIN,
-      DAYSSUPL = DAYSSUPL,
-      QUANTITY = QUANTITY,
-      STRENGTH = STRENGTH
+      din      = din,
+      dayssupl = dayssupl,
+      quantity = quantity,
+      dose_num = dose_num
     )
   }
 
@@ -141,23 +141,23 @@ calculate_oral_eq <- function(.data = NULL, DIN.PIN = NULL, DAYSSUPL = NULL, QUA
     dplyr::mutate(
         total_dose = dplyr::case_when(
         # Missing or invalid DIN
-        is.na(DIN.PIN) | DIN.PIN == "" ~ haven::tagged_na("b"),
+        is.na(din) | din == "" ~ haven::tagged_na("b"),
 
-        # Missing or invalid DAYSSUPL
-        is.na(DAYSSUPL) | DAYSSUPL <= 0 ~ haven::tagged_na("b"),
+        # Missing or invalid dayssupl
+        is.na(dayssupl) | dayssupl <= 0 ~ haven::tagged_na("b"),
 
-        # Missing or invalid QUANTITY
-        is.na(QUANTITY) | QUANTITY <= 0 ~ haven::tagged_na("b"),
+        # Missing or invalid quantity
+        is.na(quantity) | quantity <= 0 ~ haven::tagged_na("b"),
 
-        # Missing or invalid STRENGTH
-        is.na(STRENGTH) | STRENGTH <= 0 ~ haven::tagged_na("b"),
+        # Missing or invalid dose_num
+        is.na(dose_num) | dose_num <= 0 ~ haven::tagged_na("b"),
 
         # DIN not found in conversion table (CONVERSION_FACTOR will be NA).
         # Caused by error in DIN entry or exclusions
         is.na(conversion_factor) ~ haven::tagged_na("b"),
 
-        # Calculate total meq: (Quantity × Strength × Conversion Factor) 
-        TRUE ~ (QUANTITY * STRENGTH * conversion_factor),
+        # Calculate total meq: (quantity × dose_num × Conversion Factor)
+        TRUE ~ (quantity * dose_num * conversion_factor),
 
         # Default to missing
         .default = haven::tagged_na("b")
@@ -165,23 +165,23 @@ calculate_oral_eq <- function(.data = NULL, DIN.PIN = NULL, DAYSSUPL = NULL, QUA
 
       daily_dose = dplyr::case_when(
         # Missing or invalid DIN
-        is.na(DIN.PIN) | DIN.PIN == "" ~ haven::tagged_na("b"),
+        is.na(din) | din == "" ~ haven::tagged_na("b"),
 
-        # Missing or invalid DAYSSUPL
-        is.na(DAYSSUPL) | DAYSSUPL <= 0 ~ haven::tagged_na("b"),
+        # Missing or invalid dayssupl
+        is.na(dayssupl) | dayssupl <= 0 ~ haven::tagged_na("b"),
 
-        # Missing or invalid QUANTITY
-        is.na(QUANTITY) | QUANTITY <= 0 ~ haven::tagged_na("b"),
+        # Missing or invalid quantity
+        is.na(quantity) | quantity <= 0 ~ haven::tagged_na("b"),
 
-        # Missing or invalid STRENGTH
-        is.na(STRENGTH) | STRENGTH <= 0 ~ haven::tagged_na("b"),
+        # Missing or invalid dose_num
+        is.na(dose_num) | dose_num <= 0 ~ haven::tagged_na("b"),
 
         # DIN not found in conversion table (CONVERSION_FACTOR will be NA).
         # Caused by error in DIN entry or exclusions
         is.na(conversion_factor) ~ haven::tagged_na("b"),
 
-        # Calculate total meq: (Quantity × Strength × Conversion Factor) 
-        TRUE ~ (QUANTITY * STRENGTH * conversion_factor)/DAYSSUPL,
+        # Calculate daily meq: (quantity × dose_num × Conversion Factor) / dayssupl
+        TRUE ~ (quantity * dose_num * conversion_factor) / dayssupl,
 
         # Default to missing
         .default = haven::tagged_na("b")

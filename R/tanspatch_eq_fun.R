@@ -127,43 +127,43 @@ din_list_transdermal <- read.csv(cchs_config$default$variable$din_list_transderm
 #' DOI: 10.1097/j.pain.0000000000003529
 #'
 #' @export
-calculate_transpatch_eq <- function(.data = NULL, DIN.PIN = NULL, DAYSSUPL = NULL, QUANTITY = NULL, STRENGTH = NULL) {
+calculate_transpatch_eq <- function(.data = NULL, din = NULL, dayssupl = NULL, quantity = NULL, dose_num = NULL) {
   # Accept either a dataframe or individual vectors
   if (!is.null(.data)) {
     input_data <- .data
   } else {
     input_data <- tibble::tibble(
-      DIN.PIN  = DIN.PIN,
-      DAYSSUPL = DAYSSUPL,
-      QUANTITY = QUANTITY,
-      STRENGTH = STRENGTH
+      din      = din,
+      dayssupl = dayssupl,
+      quantity = quantity,
+      dose_num = dose_num
     )
   }
 
   result <- input_data %>%
     dplyr::mutate(
       # Derive DS: transdermal patches last either 2 or 3 days
-      ds_value = dplyr::if_else(DAYSSUPL == 2, 2, 3),
+      ds_value = dplyr::if_else(dayssupl == 2, 2, 3),
 
       daily_dose = dplyr::case_when(
         # Missing or invalid DIN
-        is.na(DIN.PIN) | DIN.PIN == "" ~ haven::tagged_na("b"),
+        is.na(din) | din == "" ~ haven::tagged_na("b"),
 
-        # Missing or invalid DAYSSUPL
-        is.na(DAYSSUPL) | DAYSSUPL <= 0 ~ haven::tagged_na("b"),
+        # Missing or invalid dayssupl
+        is.na(dayssupl) | dayssupl <= 0 ~ haven::tagged_na("b"),
 
-        # Missing or invalid QUANTITY
-        is.na(QUANTITY) | QUANTITY <= 0 ~ haven::tagged_na("b"),
+        # Missing or invalid quantity
+        is.na(quantity) | quantity <= 0 ~ haven::tagged_na("b"),
 
-        # Missing or invalid STRENGTH
-        is.na(STRENGTH) | STRENGTH <= 0 ~ haven::tagged_na("b"),
+        # Missing or invalid dose_num
+        is.na(dose_num) | dose_num <= 0 ~ haven::tagged_na("b"),
 
         # DIN not found in conversion table (conversion_factor will be NA).
         # Caused by error in DIN entry or exclusions
         is.na(conversion_factor) ~ haven::tagged_na("b"),
 
-        # Calculate total MEQ: (Quantity × Strength × Conversion Factor)
-        TRUE ~ (QUANTITY * STRENGTH * conversion_factor),
+        # Calculate daily MEQ: (quantity × dose_num × Conversion Factor)
+        TRUE ~ (quantity * dose_num * conversion_factor),
 
         # Default to missing
         .default = haven::tagged_na("b")
@@ -171,23 +171,23 @@ calculate_transpatch_eq <- function(.data = NULL, DIN.PIN = NULL, DAYSSUPL = NUL
 
       total_dose = dplyr::case_when(
         # Missing or invalid DIN
-        is.na(DIN.PIN) | DIN.PIN == "" ~ haven::tagged_na("b"),
+        is.na(din) | din == "" ~ haven::tagged_na("b"),
 
-        # Missing or invalid DAYSSUPL
-        is.na(DAYSSUPL) | DAYSSUPL <= 0 ~ haven::tagged_na("b"),
+        # Missing or invalid dayssupl
+        is.na(dayssupl) | dayssupl <= 0 ~ haven::tagged_na("b"),
 
-        # Missing or invalid QUANTITY
-        is.na(QUANTITY) | QUANTITY <= 0 ~ haven::tagged_na("b"),
+        # Missing or invalid quantity
+        is.na(quantity) | quantity <= 0 ~ haven::tagged_na("b"),
 
-        # Missing or invalid STRENGTH
-        is.na(STRENGTH) | STRENGTH <= 0 ~ haven::tagged_na("b"),
+        # Missing or invalid dose_num
+        is.na(dose_num) | dose_num <= 0 ~ haven::tagged_na("b"),
 
         # DIN not found in conversion table (conversion_factor will be NA).
         # Caused by error in DIN entry or exclusions
         is.na(conversion_factor) ~ haven::tagged_na("b"),
 
-        # Calculate daily MEQ: (Quantity × Strength × Conversion Factor × DS)
-        TRUE ~ (QUANTITY * STRENGTH * conversion_factor * ds_value),
+        # Calculate total MEQ: (quantity × dose_num × Conversion Factor × DS)
+        TRUE ~ (quantity * dose_num * conversion_factor * ds_value),
 
         # Default to missing
         .default = haven::tagged_na("b")
