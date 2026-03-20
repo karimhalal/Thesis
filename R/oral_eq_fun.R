@@ -27,8 +27,10 @@
 #'          - Overdose risk assessment
 #'          - Clinical decision support
 #' 
-#' The MEQ formula is as follows:
-#'
+#' The total MEQ formula is as follows:
+#' MEQ (total milligram morphine equivalents) = (Q X D X CF)
+#' 
+#' The daily MEQ formula is as follows
 #' MEQ (daily milligram morphine equivalents) = (Q X D X CF) / DS
 #' 
 #' Where:
@@ -122,44 +124,75 @@ din_list_oral <- read.csv(cchs_config$default$variable$din_list_oral, fileEncodi
 #' DOI: 10.1097/j.pain.0000000000003529
 #' 
 #' @export
-calculate_oral_eq <- function(DIN, DAYSSUPL, QUANTITY, STRENGTH) {
-  #Create a data frame from inputs for easier matching
-input_data <- tibble::tibble(
-    DIN.PIN = DIN,
-    DAYSSUPL = DAYSSUPL,
-    QUANTITY = QUANTITY,
-    STRENGTH = STRENGTH
-  )
-  
-  # Join with conversion factors from din_list and calculate MEQ
+calculate_oral_eq <- function(.data = NULL, DIN.PIN = NULL, DAYSSUPL = NULL, QUANTITY = NULL, STRENGTH = NULL) {
+  # Accept either a dataframe or individual vectors
+  if (!is.null(.data)) {
+    input_data <- .data
+  } else {
+    input_data <- tibble::tibble(
+      DIN.PIN  = DIN.PIN,
+      DAYSSUPL = DAYSSUPL,
+      QUANTITY = QUANTITY,
+      STRENGTH = STRENGTH
+    )
+  }
+
   result <- input_data %>%
-    dplyr::left_join(din_list_oral, by = "DIN.PIN") %>%
     dplyr::mutate(
-      meq_daily = dplyr::case_when(
+        total_dose = dplyr::case_when(
         # Missing or invalid DIN
-        is.na(DIN) | DIN == "" ~ haven::tagged_na("b"),
-        
+        is.na(DIN.PIN) | DIN.PIN == "" ~ haven::tagged_na("b"),
+
         # Missing or invalid DAYSSUPL
         is.na(DAYSSUPL) | DAYSSUPL <= 0 ~ haven::tagged_na("b"),
-        
+
         # Missing or invalid QUANTITY
         is.na(QUANTITY) | QUANTITY <= 0 ~ haven::tagged_na("b"),
-        
+
         # Missing or invalid STRENGTH
         is.na(STRENGTH) | STRENGTH <= 0 ~ haven::tagged_na("b"),
-        
-        # DIN not found in conversion table (CONVERSION_FACTOR will be NA). 
-        #Cause by error in DIN entry or
+
+        # DIN not found in conversion table (CONVERSION_FACTOR will be NA).
+        # Caused by error in DIN entry or exclusions
         is.na(conversion_factor) ~ haven::tagged_na("b"),
-       
-        # Calculate MEQ: (Quantity × Strength × Conversion Factor) / Days Supply
-        TRUE ~ (QUANTITY * STRENGTH * conversion_factor) / DAYSSUPL,
-        
+
+        # Calculate total meq: (Quantity × Strength × Conversion Factor) 
+        TRUE ~ (QUANTITY * STRENGTH * conversion_factor),
+
+        # Default to missing
+        .default = haven::tagged_na("b")
+      ),
+
+      daily_dose = dplyr::case_when(
+        # Missing or invalid DIN
+        is.na(DIN.PIN) | DIN.PIN == "" ~ haven::tagged_na("b"),
+
+        # Missing or invalid DAYSSUPL
+        is.na(DAYSSUPL) | DAYSSUPL <= 0 ~ haven::tagged_na("b"),
+
+        # Missing or invalid QUANTITY
+        is.na(QUANTITY) | QUANTITY <= 0 ~ haven::tagged_na("b"),
+
+        # Missing or invalid STRENGTH
+        is.na(STRENGTH) | STRENGTH <= 0 ~ haven::tagged_na("b"),
+
+        # DIN not found in conversion table (CONVERSION_FACTOR will be NA).
+        # Caused by error in DIN entry or exclusions
+        is.na(conversion_factor) ~ haven::tagged_na("b"),
+
+        # Calculate total meq: (Quantity × Strength × Conversion Factor) 
+        TRUE ~ (QUANTITY * STRENGTH * conversion_factor)/DAYSSUPL,
+
         # Default to missing
         .default = haven::tagged_na("b")
       )
-    ) %>%
-    dplyr::pull(meq_daily)
-  
+    )
+
+  # When called with vectors, return only the computed column
+  if (is.null(.data)) {
+    return(dplyr::pull(result, meq_daily))
+  }
+
   return(result)
 }
+

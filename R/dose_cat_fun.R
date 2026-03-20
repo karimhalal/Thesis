@@ -72,7 +72,8 @@ dose_cat_fun<- function(meq_daily, DIN, din_list=NULL) {
   result <- input_data %>%
      dplyr::mutate(drug_class= dplyr::case_when(
       DIN %in% get_dins_by_class("opioid", din_list)~"opioid", 
-      DIN %in% get_dinlist_by_class("bzd", din_list)~"bzd"
+      DIN %in% get_dinlist_by_class("bzd", din_list)~"bzd", 
+      DIN %in% get
      ),
       
       # Categorize based on drug class and dose
