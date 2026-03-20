@@ -40,6 +40,7 @@
 #'            HUPDPAD(no corresponding variables post-2015) categorical 5 categories: no pain, pain does not prevent activity, prevents a few activities, prevents some activities, prevents most activities
 #'            PACDEE(derived from paa_045, paa_050, paa_075, paa_080, paadvdys, and paadvvig post-2015) MET (energy expenditure measure) for leisure activities
 #'            SMK_01A(no variables post-2015) smoked 100+cigs categorical (2 categories): yes, no
+#'            smk_005(no variables in 2013) type of smoker presently 3 category (daily, occasionally, not at all)
 #'            SMK_203(derived from smk_005 and smk_040) age started smoking daily (daily smokers) continous
 #'            SMK_204(smk_045 post-2015) number of cig smoked per day (current daily) continous
 #'            SMK_207(derived from smk_005 and smk_040 post-2015) age started smoking daily continous
@@ -211,6 +212,7 @@ cchs_mock <- function(sample_2013, sample_2015, sample_2017) {
       paadvvig     = inj_na_c(pmax(0L, round(rnorm(n, 1.5,1.5),0))),  # days vig PA
 
       # Smoking
+      smk_005_raw      = inj_na_s(ifelse(smk_raw == 1, 1L, ifelse(smk_raw %in% 2:3, 2L, 3L))),
       smoked_100       = inj_na_s(as.integer(smk_raw %in% 1:5) + 1L), # 1=Yes 2=No
       smk_type         = inj_na_l(smk_raw),
       age_start_daily  = subgroup_cont(n, is_any_daily,
@@ -374,7 +376,7 @@ cchs_mock <- function(sample_2013, sample_2015, sample_2017) {
 
       # Smoking (no SMK_01A post-2015)
       smkdvsty = make_lbl_l(r$smk_type,   "Type of smoker"),
-      smk_005  = make_cont(r$age_start_daily, "Age started smoking daily"),
+      smk_005  = make_lbl_s(r$smk_005_raw, "Type of smoker presently (daily/occasionally/not at all)"),
       smk_040  = make_cont(r$yr_start_daily,  "Year started smoking daily"),
       smk_045  = make_cont(r$n_cigs_curr_dly, "Number of cigarettes per day (current daily)"),
       smk_050  = make_cont(r$n_cigs_occ,      "Number of cigarettes per day (occasional)"),
