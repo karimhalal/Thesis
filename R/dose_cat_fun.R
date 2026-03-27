@@ -65,6 +65,10 @@ dose_cat_fun <- function(input_data) {
     tolower(drug_class) == "bzd" & daily_dose > 5  & daily_dose < 15       ~ 2,
     tolower(drug_class) == "bzd" & daily_dose >= 15                         ~ 3,
 
+    #Stimulant categories: methylphenidate equivalents
+    tolower(drug_class)=="stimulant" & grepl("amphetamine|dextroamp", Active.Ing) 
+    #Stimulant categories: amphetamine equivalents
+    
     # Default to missing
     .default = haven::tagged_na("b")
   )

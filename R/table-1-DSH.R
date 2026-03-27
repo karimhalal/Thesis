@@ -1,134 +1,206 @@
 library(dplyr)
-library(tableone)
 library(flextable)
+library(labelled)
 
-# ── Variables ──────────────────────────────────────────────────────────────────
+# ── Variable configuration ─────────────────────────────────────────────────────
 t1_vars <- c(
   "DHH_AGE", "race_collapsed", "EDUDR03", "DHH_MS", "FSCDHFS2",
   "GEN_10", "GEN_02B", "GEN_07", "GEN_09", "GENGSWL",
-  "smoke_simple", "ALCDTTM", "ALWDWKY",
+  "SMKDSTY_cat5", "ALCDTTM", "ALWDWKY",
   "HUPDPAD",
   "CCC_031", "CCC_071", "CCC_091", "CCC_121", "CCC_131", "CCC_280", "CCC_290",
-  "mutliple_cond_der", "INCDRCA", "INCDRPR","INCDRRS",
-  "material_deprivation","bmi_adj",
+  "mutliple_cond_der", "INCDRCA", "INCDRPR", "INCDRRS",
+  "material_deprivation", "rural", "bmi_adj",
   "SurveyCycle"
 )
-t1_cont <- c("DHH_AGE", "ALWDWKY")   # shown as median (IQR)
+t1_cont <- c("DHH_AGE", "ALWDWKY", "bmi_adj")
 
-# ── Split into 4 sex × cohort groups ──────────────────────────────────────────
-male_deriv   <- filter(harmonized_data, DHH_SEX == 1, cohort == "Derivation")
-male_valid   <- filter(harmonized_data, DHH_SEX == 1, cohort == "Validation")
-female_deriv <- filter(harmonized_data, DHH_SEX == 2, cohort == "Derivation")
-female_valid <- filter(harmonized_data, DHH_SEX == 2, cohort == "Validation")
+# First variable in each section → section title
+section_starts <- c(
+  "DHH_AGE"      = "Socio-demographic factors",
+  "GEN_10"       = "General health",
+  "SMKDSTY_cat5" = "Health behaviours",
+  "HUPDPAD"      = "Functional measures",
+  "CCC_031"      = "Health conditions",
+  "SurveyCycle"  = "Design"
+)
 
-# ── Helper: run tableone → named character vector ─────────────────────────────
-run_t1 <- function(data) {
-  tbl <- CreateTableOne(
-    vars       = t1_vars,
-    data       = data,
-    factorVars = setdiff(t1_vars, t1_cont)
-  )
-  mat <- print(tbl,
-               nonnormal     = t1_cont,
-               showAllLevels = TRUE,
-               printToggle   = FALSE,
-               noSpaces      = TRUE,
-               contDigits    = 1,
-               catDigits     = 1,
-               quote         = FALSE)
-  setNames(as.character(mat[, "Overall"]), rownames(mat))
+# ── Helpers ────────────────────────────────────────────────────────────────────
+get_label <- function(col, varname) {
+  lbl <- attr(col, "label")
+  lbl <- lbl[1]   # guard against length > 1 labels from set_data_labels()
+  if (!is.null(lbl) && !is.na(lbl) && nzchar(trimws(lbl))) lbl else varname
 }
 
-col_md <- run_t1(male_deriv)
-col_mv <- run_t1(male_valid)
-col_fd <- run_t1(female_deriv)
-col_fv <- run_t1(female_valid)
+fmt_med_iqr <- function(x) {
+  x <- suppressWarnings(as.numeric(x))
+  x <- x[!is.na(x)]
+  if (length(x) == 0) return("—")
+  sprintf("%.1f [%.1f, %.1f]", median(x), quantile(x, 0.25), quantile(x, 0.75))
+}
 
-# ── Combine into a single data frame ──────────────────────────────────────────
+# Display labels for tagged / string NA codes
+.na_display <- c(
+  "a" = "Not applicable",
+  "b" = "Missing",
+  "c" = "Question not asked in survey"
+)
+
+# Return col as a factor using value labels when available.
+# Tagged NAs and NA(x) string levels are converted to display labels
+# so they appear as named categories in the table.
+as_factor_safe <- function(col) {
+  if (is.labelled(col) && length(val_labels(col)) > 0) {
+    # Capture tags BEFORE to_factor() strips them
+    tags <- haven::na_tag(col)
+    f    <- to_factor(col)
+    for (tag in names(.na_display)) {
+      mask <- !is.na(tags) & tags == tag
+      if (any(mask)) {
+        lbl <- .na_display[[tag]]
+        if (!lbl %in% levels(f)) levels(f) <- c(levels(f), lbl)
+        f[mask] <- lbl
+      }
+    }
+  } else if (is.factor(col)) {
+    f    <- col
+    lvls <- levels(f)
+    # Fallback: rename any NA(a)/NA(b)/NA(c) string levels
+    # (not produced by loadData.R, but handled defensively)
+    na_map <- c("NA(a)" = "Not applicable",
+                "NA(b)" = "Missing",
+                "NA(c)" = "Question not asked in survey")
+    levels(f) <- ifelse(lvls %in% names(na_map), na_map[lvls], lvls)
+  } else {
+    f <- factor(as.character(col))
+  }
+  f
+}
+
+# ── Pre-compute levels from the full dataset so both sexes share the same rows ─
+all_levels <- setNames(
+  lapply(t1_vars, function(v) {
+    if (v %in% t1_cont) return(NULL)
+    levels(as_factor_safe(harmonized_data[[v]]))
+  }),
+  t1_vars
+)
+
+# ── Build stat rows for one group ──────────────────────────────────────────────
+build_rows <- function(data) {
+  n   <- nrow(data)
+  out <- list()
+
+  for (v in t1_vars) {
+    col <- data[[v]]
+    lbl <- get_label(col, v)
+
+    if (v %in% t1_cont) {
+      out[[length(out) + 1]] <- data.frame(
+        Characteristic = as.character(lbl),
+        stat           = fmt_med_iqr(col),
+        is_level       = FALSE,
+        var            = v,
+        stringsAsFactors = FALSE
+      )
+    } else {
+      # Variable name row — no stat value
+      out[[length(out) + 1]] <- data.frame(
+        Characteristic = as.character(lbl),
+        stat           = "",
+        is_level       = FALSE,
+        var            = v,
+        stringsAsFactors = FALSE
+      )
+      # One row per level, using the pre-computed levels so both sexes align
+      lvls <- all_levels[[v]]
+      x    <- factor(as_factor_safe(col), levels = lvls)
+      tbl  <- table(x)
+      for (i in seq_along(lvls)) {
+        cnt <- as.integer(tbl[i])
+        out[[length(out) + 1]] <- data.frame(
+          Characteristic = as.character(lvls[i]),
+          stat           = sprintf("%d (%.1f%%)", cnt, 100 * cnt / n),
+          is_level       = TRUE,
+          var            = v,
+          stringsAsFactors = FALSE
+        )
+      }
+    }
+  }
+  bind_rows(out)
+}
+
+# ── Compute per-sex tables ─────────────────────────────────────────────────────
+male_data   <- filter(harmonized_data, as.character(DHH_SEX) == "Male")
+female_data <- filter(harmonized_data, as.character(DHH_SEX) == "Female")
+
+rows_m <- build_rows(male_data)
+rows_f <- build_rows(female_data)
+
 tbl_body <- data.frame(
-  Characteristic = names(col_md),
-  Male_Deriv     = col_md,
-  Male_Valid     = col_mv,
-  Female_Deriv   = col_fd,
-  Female_Valid   = col_fv,
-  row.names      = NULL,
+  Characteristic = rows_m$Characteristic,
+  Male           = rows_m$stat,
+  Female         = rows_f$stat,
+  is_level       = rows_m$is_level,
+  var            = rows_m$var,
   stringsAsFactors = FALSE
 )
 
-# Capitalise the "n" row from tableone
-tbl_body$Characteristic[tbl_body$Characteristic == "n"] <- "N"
+# Prepend sample-size row
+tbl_body <- rbind(
+  data.frame(
+    Characteristic = "N",
+    Male           = as.character(nrow(male_data)),
+    Female         = as.character(nrow(female_data)),
+    is_level       = FALSE,
+    var            = NA_character_,
+    stringsAsFactors = FALSE
+  ),
+  tbl_body
+)
 
-# ── Insert section header rows ────────────────────────────────────────────────
-# Looks up the variable label (or falls back to variable name) to find the
-# correct insertion point in Characteristic.
-insert_section <- function(df, label, var_name, ref_data) {
-  search <- attr(ref_data[[var_name]], "label")
-  if (is.null(search) || !nzchar(search)) search <- var_name
-  idx <- grep(search, df$Characteristic, fixed = TRUE)[1]
+# ── Insert section header rows ─────────────────────────────────────────────────
+# Insert from bottom to top so earlier insertions don't shift later indices
+insert_section <- function(df, sec_var, sec_label) {
+  idx <- which(!df$is_level & !is.na(df$var) & df$var == sec_var)[1]
   if (is.na(idx)) return(df)
   hdr <- data.frame(
-    Characteristic = label,
-    Male_Deriv = "", Male_Valid = "",
-    Female_Deriv = "", Female_Valid = "",
+    Characteristic = sec_label,
+    Male           = "",
+    Female         = "",
+    is_level       = FALSE,
+    var            = NA_character_,
     stringsAsFactors = FALSE
   )
-  rbind(df[seq_len(idx - 1), ], hdr, df[idx:nrow(df), ], make.row.names = FALSE)
+  rbind(df[seq_len(idx - 1L), ], hdr, df[idx:nrow(df), ], make.row.names = FALSE)
 }
 
-tbl_body <- tbl_body %>%
-  insert_section("Socio-demographic factors", "DHHGAGE_D",    harmonized_data) %>%
-  insert_section("General health",            "GEN_10",       harmonized_data) %>%
-  insert_section("Health behaviours",         "smoke_simple", harmonized_data) %>%
-  insert_section("Functional measures",       "HUPDPAD",      harmonized_data) %>%
-  insert_section("Health conditions",         "CCC_031",      harmonized_data) %>%
-  insert_section("Design",                    "SurveyCycle",  harmonized_data)
+for (v in rev(names(section_starts))) {
+  tbl_body <- insert_section(tbl_body, v, section_starts[[v]])
+}
 
-# ── Row indices for styling ───────────────────────────────────────────────────
-section_labels <- c(
-  "Socio-demographic factors", "General health", "Health behaviours",
-  "Functional measures", "Health conditions", "Design"
-)
-section_rows <- which(tbl_body$Characteristic %in% section_labels)
-level_rows   <- grep("^  ", tbl_body$Characteristic)   # tableone indents levels with 2 spaces
+# ── Row indices for styling ────────────────────────────────────────────────────
+section_rows <- which(tbl_body$Characteristic %in% as.character(section_starts))
+level_rows   <- which(tbl_body$is_level)
 
-# ── Build flextable ───────────────────────────────────────────────────────────
-tbl_1 <- flextable(tbl_body) %>%
-  # Bottom header row: Derivation / Validation labels
+# ── Build flextable ────────────────────────────────────────────────────────────
+tbl_display <- tbl_body[, c("Characteristic", "Male", "Female")]
+
+tbl_1 <- flextable(tbl_display) %>%
   set_header_labels(
     Characteristic = "Characteristic",
-    Male_Deriv     = "Derivation\u2020",
-    Male_Valid     = "Validation\u2021",
-    Female_Deriv   = "Derivation\u2020",
-    Female_Valid   = "Validation\u2021"
+    Male           = sprintf("Male (n = %d)", nrow(male_data)),
+    Female         = sprintf("Female (n = %d)", nrow(female_data))
   ) %>%
-  # Top header row: sex-cohort spanners
-  add_header_row(
-    values    = c("", "Male cohort", "Female cohort"),
-    colwidths = c(1, 2, 2)
-  ) %>%
-  # Section header rows: bold, light background
   bold(i = section_rows, part = "body") %>%
   bg(i = section_rows, bg = "#f2f2f2", part = "body") %>%
-  # Indent categorical level rows
   padding(i = level_rows, j = 1, padding.left = 20, part = "body") %>%
-  # Header styling
   bold(part = "header") %>%
-  align(j = 2:5, align = "center", part = "all") %>%
+  align(j = 2:3, align = "center", part = "all") %>%
   align(j = 1, align = "left", part = "all") %>%
-  # Three-line (booktabs) theme
   theme_booktabs() %>%
-  # Typography
   font(fontname = "Times New Roman", part = "all") %>%
   fontsize(size = 10, part = "all") %>%
-  set_table_properties(layout = "autofit") %>%
-  # Footnotes
-  add_footer_lines(c(
-    "\u2020 Derivation cohort: survey cycles 2001\u20132008.",
-    "\u2021 Validation cohort: survey cycles 2009\u20132012."
-  )) %>%
-  font(fontname = "Times New Roman", part = "footer") %>%
-  fontsize(size = 9, part = "footer")
+  set_table_properties(layout = "autofit")
 
-generate_mock_cchs <- function() {
-  output <- data.frame()
-}
