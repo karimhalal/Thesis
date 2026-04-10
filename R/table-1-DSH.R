@@ -204,3 +204,134 @@ tbl_1 <- flextable(tbl_display) %>%
   fontsize(size = 10, part = "all") %>%
   set_table_properties(layout = "autofit")
 
+
+# ── Weighted helpers ────────────────────────────────────────────────────────────
+wtd_quantile <- function(x, w, probs = c(0.25, 0.5, 0.75)) {
+  x <- suppressWarnings(as.numeric(x))
+  ok <- !is.na(x) & !is.na(w) & w > 0
+  x <- x[ok]; w <- w[ok]
+  if (length(x) == 0) return(setNames(rep(NA_real_, length(probs)), probs))
+  ord <- order(x)
+  x <- x[ord]; w <- w[ord]
+  cum_w <- cumsum(w) / sum(w)
+  sapply(probs, function(p) x[which(cum_w >= p)[1]])
+}
+
+fmt_med_iqr_wtd <- function(x, w) {
+  q <- wtd_quantile(x, w)
+  if (anyNA(q)) return("—")
+  sprintf("%.1f [%.1f, %.1f]", q[2], q[1], q[3])
+}
+
+# ── Build weighted stat rows for one group ─────────────────────────────────────
+build_rows_weighted <- function(data) {
+  w   <- data[["WTS_L"]]
+  out <- list()
+
+  for (v in t1_vars) {
+    col <- data[[v]]
+    lbl <- get_label(col, v)
+
+    if (v %in% t1_cont) {
+      out[[length(out) + 1]] <- data.frame(
+        Characteristic = as.character(lbl),
+        stat           = fmt_med_iqr_wtd(col, w),
+        is_level       = FALSE,
+        var            = v,
+        stringsAsFactors = FALSE
+      )
+    } else {
+      out[[length(out) + 1]] <- data.frame(
+        Characteristic = as.character(lbl),
+        stat           = "",
+        is_level       = FALSE,
+        var            = v,
+        stringsAsFactors = FALSE
+      )
+      lvls    <- all_levels[[v]]
+      x       <- factor(as_factor_safe(col), levels = lvls)
+      total_w <- sum(w[!is.na(x)], na.rm = TRUE)
+      for (i in seq_along(lvls)) {
+        mask  <- !is.na(x) & x == lvls[i]
+        cat_w <- sum(w[mask], na.rm = TRUE)
+        out[[length(out) + 1]] <- data.frame(
+          Characteristic = as.character(lvls[i]),
+          stat           = sprintf("%.0f (%.1f%%)", cat_w, 100 * cat_w / total_w),
+          is_level       = TRUE,
+          var            = v,
+          stringsAsFactors = FALSE
+        )
+      }
+    }
+  }
+  bind_rows(out)
+}
+
+# ── Compute weighted per-sex tables ───────────────────────────────────────────
+rows_m_wtd <- build_rows_weighted(male_data)
+rows_f_wtd <- build_rows_weighted(female_data)
+
+tbl_body_wtd <- data.frame(
+  Characteristic = rows_m_wtd$Characteristic,
+  Male           = rows_m_wtd$stat,
+  Female         = rows_f_wtd$stat,
+  is_level       = rows_m_wtd$is_level,
+  var            = rows_m_wtd$var,
+  stringsAsFactors = FALSE
+)
+
+# Prepend weighted N row
+tbl_body_wtd <- rbind(
+  data.frame(
+    Characteristic = "Weighted N",
+    Male           = sprintf("%.0f", sum(male_data[["WTS_L"]], na.rm = TRUE)),
+    Female         = sprintf("%.0f", sum(female_data[["WTS_L"]], na.rm = TRUE)),
+    is_level       = FALSE,
+    var            = NA_character_,
+    stringsAsFactors = FALSE
+  ),
+  tbl_body_wtd
+)
+
+# Insert section headers (reuse insert_section, but adapted for wtd body)
+insert_section_wtd <- function(df, sec_var, sec_label) {
+  idx <- which(!df$is_level & !is.na(df$var) & df$var == sec_var)[1]
+  if (is.na(idx)) return(df)
+  hdr <- data.frame(
+    Characteristic = sec_label,
+    Male           = "",
+    Female         = "",
+    is_level       = FALSE,
+    var            = NA_character_,
+    stringsAsFactors = FALSE
+  )
+  rbind(df[seq_len(idx - 1L), ], hdr, df[idx:nrow(df), ], make.row.names = FALSE)
+}
+
+for (v in rev(names(section_starts))) {
+  tbl_body_wtd <- insert_section_wtd(tbl_body_wtd, v, section_starts[[v]])
+}
+
+# ── Row indices for styling ────────────────────────────────────────────────────
+section_rows_wtd <- which(tbl_body_wtd$Characteristic %in% as.character(section_starts))
+level_rows_wtd   <- which(tbl_body_wtd$is_level)
+
+# ── Build weighted flextable ───────────────────────────────────────────────────
+tbl_display_wtd <- tbl_body_wtd[, c("Characteristic", "Male", "Female")]
+
+tbl_1_wtd <- flextable(tbl_display_wtd) %>%
+  set_header_labels(
+    Characteristic = "Characteristic",
+    Male           = sprintf("Male (n = %d)", nrow(male_data)),
+    Female         = sprintf("Female (n = %d)", nrow(female_data))
+  ) %>%
+  bold(i = section_rows_wtd, part = "body") %>%
+  bg(i = section_rows_wtd, bg = "#f2f2f2", part = "body") %>%
+  padding(i = level_rows_wtd, j = 1, padding.left = 20, part = "body") %>%
+  bold(part = "header") %>%
+  align(j = 2:3, align = "center", part = "all") %>%
+  align(j = 1, align = "left", part = "all") %>%
+  theme_booktabs() %>%
+  font(fontname = "Times New Roman", part = "all") %>%
+  fontsize(size = 10, part = "all") %>%
+  set_table_properties(layout = "autofit")
