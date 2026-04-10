@@ -1,3 +1,10 @@
+
+############################################################
+             ###Check Skewnewss and truncate###
+############################################################
+
+
+#change
 #' @param data a data.frame containing the study data
 #' @param continuous_vars character vector of continuous variable names to check
 #' @param skewness_threshold numeric threshold for |skewness| (default: 1).
@@ -104,4 +111,25 @@ truncate_data <- function(data, variables_to_truncate, truncate_percentile) {
     missing = data
   )
   return(truncated_data)
+}
+
+#######Centering, RCS and Dummied variables#######
+
+#dummy variables
+variable_dummy <- function(data, vars_to_dummy) {
+
+  for (var in vars_to_dummy) {
+    cats <- sort(unique(na.omit(data[[var]])))
+
+    # Drop the most common category (reference level)
+    ref_cat <- names(which.max(table(data[[var]], useNA = "no")))
+    cats_to_dummy <- cats[cats != ref_cat]
+
+    for (i in seq_along(cats_to_dummy)) {
+      dummy_name <- paste0(var, "_cat", i)
+      data[[dummy_name]] <- as.integer(data[[var]] == cats_to_dummy[i])
+    }
+  }
+
+  return(data)
 }
