@@ -364,3 +364,90 @@ multiple_conditions_fun2 <-
     
     if_else2(conditions>= 5, "5+", conditions)
   }
+
+#' @title Special row binding function
+#' 
+#' @description this function allows for the binding of rows while keeping SAS labels and value labels introduced during cleaning.
+#' This function will be used during the harmonization of CCHS cycles to avoid having to reintigerate
+#' labels which have already been defined in the original cut.
+#' 
+#' @param df1 first df to be binded
+#' @param df2 second df to be binded
+#' @param prefer determines the order in which labels should be preserved for shared variables.
+#' 
+#' @return a dataframe which binds columns with the same variable name, preserving the labels following the
+#' order identified in the prefer argument
+#' 
+
+bind_rows_keep_labels<-function(df1, df2, prefer=c("df1", "df2")){
+  prefer<-match.arg(prefer)
+
+  #extract variable and value labels from existing 
+  lab1<-var_label(df1)
+  lab2<-var_label(df2)
+  val1<-lapply(df1, val_labels)
+  val2<-lapply(df2,val_labels)
+
+  #bind rows 
+  out<-bind_rows(df1,df2)
+
+  #retrieve the column names of the combination
+  all_names<-names(out)
+
+  #initialize lists with the same length as the number of variables in the binded set
+  combined_var_labels<-vector("list", length(all_names))
+  names(combined_var_labels)<-all_names
+
+  combined_val_labels<-vector("list", length(all_names))
+  names(combined_val_labels)<-all_names
+
+  for(nm in all_names){
+
+    #extract labels for each variable name including a fall back mechanism when
+    l1<-lab1[[nm]]
+    l2<-lab2[[nm]]
+
+    combined_var_labels[[nm]]<- if (prefer=="df1"){
+      if(!is.null(l1)&& !identical(l1,"")) l1 else l2}
+    else{
+      if(!is.null(l2)&& !identical(l2,"")) l2 else l1
+    }
+
+    #do the same extraction for each variable category
+    v1<-val1[[nm]]
+    v2<-val2[[nm]]
+    
+    #conflicting values fix
+    if(!is.null(v1) && !is.null(v2) && !identical(v1,v2)){
+      warning(paste("Conflicting value labels for column:", nm, "-using", prefer))
+    }
+
+    combined_val_labels[[nm]]<- if (prefer=="df1"){
+      if(!is.null(v1)&& length(v1)>0) v1 else v2}
+    else{
+      if(!is.null(v2)&& length(v2)>0) v2 else v1
+    }
+
+  }
+
+  #other fixes- claude generated to work around errors during testing
+  ##null error fix discovered during testing
+  combined_var_labels<-Filter(Negate(is.null), combined_var_labels)
+  var_label(out)<-combined_var_labels
+
+  #fix for type coercion error caused my merging raw character variables from cohort dataset (ICES)
+  for(nm in names(out)){
+    v1<-combined_val_labels[[nm]]
+    if(!is.null(v1) && length(v1)>0){
+      col<-out[[nm]]
+      if(is.numeric(col)||is.integer(col)){
+        out[[nm]]<-labelled(col, v1, label = combined_var_labels[[nm]])
+      } else {
+        warning("Skipping value labels for column:", nm, "-incompatible type")
+      }
+    }
+  }
+
+  out
+
+}
