@@ -1,6 +1,9 @@
 library(dplyr)
 library(haven)
+library(cchsflow)
+source(here::here("R", "pumf-mock.R"))
 
+# ── NA helper functions ────────────────────────────────────────────────────────
 is_na_a <- function(x) {
   return(x == 6 | x == 96 | is.na(x) & haven::is_tagged_na(x, "a"))
 }
@@ -9,749 +12,583 @@ is_na_b <- function(x) {
   return(x %in% c(7, 8, 9, 97, 98, 99) | (is.na(x) & haven::is_tagged_na(x, "b")))
 }
 
-na_a <- function() {
-  return(haven::tagged_na("a"))
+na_a <- function() haven::tagged_na("a")
+na_b <- function() haven::tagged_na("b")
+na_c <- function() haven::tagged_na("c")
+
+# Replaces untagged NAs (systematically missing variables) with tagged_na("c")
+fill_na_c <- function(x) {
+  untagged <- is.na(x) & !haven::is_tagged_na(x)
+  x[untagged] <- haven::tagged_na("c")
+  x
 }
 
-na_b <- function() {
-  return(haven::tagged_na("b"))
-}
-
-recode_DHH_SEX <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 2L,
-    x == 6 ~ na_a(),
-    x %in% c(7, 8, 9) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_DHHGAGE_D <- function(x, cycle) {
-  if (cycle %in% c("cchs2001_p", "cchs2003_p")) {
-    dplyr::case_when(
-      x %in% c(1, 2) ~ 1L,
-      x %in% c(3, 4) ~ 2L,
-      x %in% c(5, 6) ~ 3L,
-      x %in% c(7, 8) ~ 4L,
-      x %in% c(9, 10) ~ 5L,
-      x %in% c(11, 12) ~ 6L,
-      x %in% c(13, 14) ~ 7L,
-      x == 15 ~ 8L,
-      x == 96 ~ na_a(),
-      x %in% c(97, 98, 99) ~ na_b(),
-      TRUE ~ na_b()
-    )
-  } else if (cycle %in% c("cchs2005_p", "cchs2007_2008_p", "cchs2009_2010_p",
-                          "cchs2010_p", "cchs2011_2012_p", "cchs2012_p",
-                          "cchs2013_2014_p", "cchs2014_p", "cchs2015_2016_p",
-                          "cchs2017_2018_p")) {
-    dplyr::case_when(
-      x %in% c(1, 2, 3) ~ 1L,
-      x %in% c(4, 5) ~ 2L,
-      x %in% c(6, 7) ~ 3L,
-      x %in% c(8, 9) ~ 4L,
-      x %in% c(10, 11) ~ 5L,
-      x %in% c(12, 13) ~ 6L,
-      x %in% c(14, 15) ~ 7L,
-      x == 16 ~ 8L,
-      x == 96 ~ na_a(),
-      x %in% c(97, 98, 99) ~ na_b(),
-      TRUE ~ na_b()
-    )
-  } else if (cycle %in% c("cchs2009_s", "cchs2010_s", "cchs2012_s")) {
-    dplyr::case_when(
-      x >= 12 & x < 20 ~ 1L,
-      x >= 20 & x < 30 ~ 2L,
-      x >= 30 & x < 40 ~ 3L,
-      x >= 40 & x < 50 ~ 4L,
-      x >= 50 & x < 60 ~ 5L,
-      x >= 60 & x < 70 ~ 6L,
-      x >= 70 & x < 80 ~ 7L,
-      x >= 80 & x <= 102 ~ 8L,
-      x == 96 ~ na_a(),
-      x %in% c(97, 98, 99) ~ na_b(),
-      TRUE ~ na_b()
-    )
-  } else {
-    na_b()
-  }
-}
-
-recode_DHHGAGE_cont <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 15.5,
-    x == 2 ~ 24.5,
-    x == 3 ~ 34.5,
-    x == 4 ~ 44.5,
-    x == 5 ~ 54.5,
-    x == 6 ~ 64.5,
-    x == 7 ~ 74.5,
-    x == 8 ~ 85.0,
-    TRUE ~ NA_real_
-  )
-}
-
-recode_ALCDTTM <- function(x, cycle) {
-  if (cycle %in% c("cchs2001_p", "cchs2003_p", "cchs2005_p")) {
-    dplyr::case_when(
-      x == 1 ~ 1L,
-      x == 2 ~ 2L,
-      x == 3 ~ 3L,
-      x == 4 ~ 3L,
-      x == 6 ~ na_a(),
-      x %in% c(7, 8, 9) ~ na_b(),
-      TRUE ~ na_b()
-    )
-  } else {
-    dplyr::case_when(
-      x == 1 ~ 1L,
-      x == 2 ~ 2L,
-      x == 3 ~ 3L,
-      x == 6 ~ na_a(),
-      x %in% c(7, 8, 9) ~ na_b(),
-      TRUE ~ na_b()
-    )
-  }
-}
-
-recode_ALW_1 <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 2L,
-    x == 6 ~ na_a(),
-    x %in% c(7, 8, 9) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_CCC_generic <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 2L,
-    x == 6 ~ na_a(),
-    x %in% c(7, 8, 9) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_CCC_031 <- recode_CCC_generic
-recode_CCC_051 <- recode_CCC_generic
-recode_CCC_071 <- recode_CCC_generic
-recode_CCC_091 <- recode_CCC_generic
-recode_CCC_101 <- recode_CCC_generic
-recode_CCC_121 <- recode_CCC_generic
-recode_CCC_131 <- recode_CCC_generic
-recode_CCC_151 <- recode_CCC_generic
-recode_CCC_171 <- recode_CCC_generic
-recode_CCC_280 <- recode_CCC_generic
-recode_CCC_290 <- recode_CCC_generic
-
-recode_ADL_generic <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 2L,
-    x == 6 ~ na_a(),
-    x %in% c(7, 8, 9) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_ADL_01 <- recode_ADL_generic
-recode_ADL_02 <- recode_ADL_generic
-recode_ADL_03 <- recode_ADL_generic
-recode_ADL_04 <- recode_ADL_generic
-recode_ADL_05 <- recode_ADL_generic
-
-recode_GEN_01 <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 2L,
-    x == 3 ~ 3L,
-    x == 4 ~ 4L,
-    x == 5 ~ 5L,
-    x == 6 ~ na_a(),
-    x %in% c(7, 8, 9) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_GEN_02B <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 2L,
-    x == 3 ~ 3L,
-    x == 4 ~ 4L,
-    x == 5 ~ 5L,
-    x == 6 ~ na_a(),
-    x %in% c(7, 8, 9) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_GEN_07 <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 2L,
-    x == 3 ~ 3L,
-    x == 4 ~ 4L,
-    x == 5 ~ 5L,
-    x == 6 ~ na_a(),
-    x %in% c(7, 8, 9) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_GEN_10 <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 2L,
-    x == 3 ~ 3L,
-    x == 4 ~ 4L,
-    x == 6 ~ na_a(),
-    x %in% c(7, 8, 9) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_GEOGPRV <- function(x) {
-  dplyr::case_when(
-    x == 10 ~ 10L,
-    x == 11 ~ 11L,
-    x == 12 ~ 12L,
-    x == 13 ~ 13L,
-    x == 24 ~ 24L,
-    x == 35 ~ 35L,
-    x == 46 ~ 46L,
-    x == 47 ~ 47L,
-    x == 48 ~ 48L,
-    x == 59 ~ 59L,
-    x == 60 ~ 60L,
-    x == 96 ~ na_a(),
-    x %in% c(97, 98, 99) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_DHHGMS <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 1L,
-    x == 3 ~ 2L,
-    x == 4 ~ 2L,
-    x == 5 ~ 2L,
-    x == 6 ~ 3L,
-    x == 96 ~ na_a(),
-    x %in% c(97, 98, 99) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_EDUDR03 <- function(x, cycle) {
-  if (cycle %in% c("cchs2015_2016_p", "cchs2017_2018_p")) {
-    dplyr::case_when(
-      x == 1 ~ 1L,
-      x == 2 ~ 2L,
-      x == 3 ~ 3L,
-      x == 6 ~ na_a(),
-      x %in% c(7, 8, 9) ~ na_b(),
-      TRUE ~ na_b()
-    )
-  } else {
-    dplyr::case_when(
-      x == 1 ~ 1L,
-      x == 2 ~ 2L,
-      x == 3 ~ 3L,
-      x == 4 ~ 3L,
-      x == 6 ~ na_a(),
-      x %in% c(7, 8, 9) ~ na_b(),
-      TRUE ~ na_b()
-    )
-  }
-}
-
-recode_SMKDSTY_cat5 <- function(x, cycle) {
-  if (cycle %in% c("cchs2015_2016_p", "cchs2017_2018_p")) {
-    dplyr::case_when(
-      x == 1 ~ 1L,
-      x == 2 ~ 2L,
-      x == 3 ~ 3L,
-      x == 4 ~ 4L,
-      x == 5 ~ 4L,
-      x == 6 ~ 5L,
-      x == 96 ~ na_a(),
-      x %in% c(97, 98, 99) ~ na_b(),
-      TRUE ~ na_b()
-    )
-  } else {
-    dplyr::case_when(
-      x == 1 ~ 1L,
-      x == 2 ~ 2L,
-      x == 3 ~ 2L,
-      x == 4 ~ 3L,
-      x == 5 ~ 4L,
-      x == 6 ~ 5L,
-      x == 96 ~ na_a(),
-      x %in% c(97, 98, 99) ~ na_b(),
-      TRUE ~ na_b()
-    )
-  }
-}
-
-recode_SMK_01A <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 2L,
-    x == 6 ~ na_a(),
-    x %in% c(7, 8, 9) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_FSCDHFS2 <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 2L,
-    x == 3 ~ 3L,
-    x == 6 ~ na_a(),
-    x %in% c(7, 8, 9) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_INCGHH_cont <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 2500,
-    x == 2 ~ 7500,
-    x == 3 ~ 12500,
-    x == 4 ~ 17500,
-    x == 5 ~ 22500,
-    x == 6 ~ 35000,
-    x == 7 ~ 45000,
-    x == 8 ~ 60000,
-    x == 9 ~ 70000,
-    x == 10 ~ 90000,
-    x == 11 ~ 125000,
-    TRUE ~ NA_real_
-  )
-}
-
-recode_HUPDPAD <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 2L,
-    x == 3 ~ 3L,
-    x == 4 ~ 4L,
-    x == 5 ~ 5L,
-    x == 6 ~ na_a(),
-    x %in% c(7, 8, 9) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-recode_SDCGCGT <- function(x) {
-  dplyr::case_when(
-    x == 1 ~ 1L,
-    x == 2 ~ 2L,
-    x == 6 ~ na_a(),
-    x %in% c(7, 8, 9) ~ na_b(),
-    TRUE ~ na_b()
-  )
-}
-
-derive_binge_drinker <- function(DHH_SEX, ALW_1, ALW_2A1, ALW_2A2, ALW_2A3,
-                                  ALW_2A4, ALW_2A5, ALW_2A6, ALW_2A7) {
-  threshold <- dplyr::if_else(DHH_SEX == 1, 5, 4)
-  max_drinks <- pmax(ALW_2A1, ALW_2A2, ALW_2A3, ALW_2A4, ALW_2A5, ALW_2A6, ALW_2A7,
-                     na.rm = TRUE)
-  dplyr::case_when(
-    ALW_1 == 2 ~ 2L,
-    max_drinks >= threshold ~ 1L,
-    max_drinks < threshold ~ 2L,
-    TRUE ~ na_b()
-  )
-}
-
-derive_ADL_der <- function(ADL_01, ADL_02, ADL_03, ADL_04, ADL_05) {
-  dplyr::case_when(
-    ADL_01 == 1 | ADL_02 == 1 | ADL_03 == 1 | ADL_04 == 1 | ADL_05 == 1 ~ 1L,
-    ADL_01 == 2 & ADL_02 == 2 & ADL_03 == 2 & ADL_04 == 2 & ADL_05 == 2 ~ 2L,
-    TRUE ~ na_b()
-  )
-}
-
-derive_ADL_score_5 <- function(ADL_01, ADL_02, ADL_03, ADL_04, ADL_05) {
-  score <- (ADL_01 == 1) + (ADL_02 == 1) + (ADL_03 == 1) +
-           (ADL_04 == 1) + (ADL_05 == 1)
-  return(as.integer(score))
-}
-
-derive_resp_condition <- function(DHHGAGE_cont, CCC_091, CCC_031) {
-  has_condition <- CCC_091 == 1 | CCC_031 == 1
-  dplyr::case_when(
-    DHHGAGE_cont >= 35 & has_condition ~ 1L,
-    DHHGAGE_cont < 35 & has_condition ~ 2L,
-    !has_condition ~ 3L,
-    TRUE ~ na_b()
-  )
-}
-
-derive_number_conditions <- function(CCC_121, CCC_131, CCC_151, CCC_171,
-                                      CCC_280, resp_condition_der, CCC_051) {
-  count <- (CCC_121 == 1) + (CCC_131 == 1) + (CCC_151 == 1) +
-           (CCC_171 == 1) + (CCC_280 == 1) +
-           (resp_condition_der %in% c(1, 2)) +
-           (CCC_051 == 1)
-  dplyr::if_else(count >= 5, "5+", as.character(count))
-}
-
-derive_smoke_simple <- function(SMKDSTY_cat5, time_quit_smoking) {
-  dplyr::case_when(
-    SMKDSTY_cat5 %in% c(1, 2) ~ 1L,
-    SMKDSTY_cat5 %in% c(3, 4) & time_quit_smoking < 2 ~ 2L,
-    SMKDSTY_cat5 %in% c(3, 4) & time_quit_smoking >= 2 ~ 3L,
-    SMKDSTY_cat5 == 5 ~ 4L,
-    TRUE ~ na_b()
-  )
-}
-
-center_variable <- function(x, center_type = "mean") {
-  x_numeric <- as.numeric(x)
-  valid_values <- x_numeric[!is.na(x_numeric)]
-  if (length(valid_values) == 0) {
-    return(x_numeric)
-  }
-  if (center_type == "mean") {
-    center_value <- mean(valid_values)
-  } else if (center_type == "median") {
-    center_value <- median(valid_values)
-  } else {
-    stop(paste("Unknown center_type:", center_type))
-  }
-  return(x_numeric - center_value)
-}
-
-center_DHHGAGE_cont <- function(data) {
-  data$DHHGAGE_cont_C <- center_variable(data$DHHGAGE_cont, "mean")
-  return(data)
-}
-
-center_CCC_031 <- function(data) {
-  data$CCC_031_C <- center_variable(data$CCC_031, "mean")
-  return(data)
-}
-
-center_CCC_051 <- function(data) {
-  data$CCC_051_C <- center_variable(data$CCC_051, "mean")
-  return(data)
-}
-
-center_CCC_071 <- function(data) {
-  data$CCC_071_C <- center_variable(data$CCC_071, "mean")
-  return(data)
-}
-
-center_CCC_091 <- function(data) {
-  data$CCC_091_C <- center_variable(data$CCC_091, "mean")
-  return(data)
-}
-
-center_CCC_121 <- function(data) {
-  data$CCC_121_C <- center_variable(data$CCC_121, "mean")
-  return(data)
-}
-
-center_CCC_131 <- function(data) {
-  data$CCC_131_C <- center_variable(data$CCC_131, "mean")
-  return(data)
-}
-
-center_CCC_151 <- function(data) {
-  data$CCC_151_C <- center_variable(data$CCC_151, "mean")
-  return(data)
-}
-
-center_CCC_280 <- function(data) {
-  data$CCC_280_C <- center_variable(data$CCC_280, "mean")
-  return(data)
-}
-
-center_CCC_290 <- function(data) {
-  data$CCC_290_C <- center_variable(data$CCC_290, "mean")
-  return(data)
-}
-
-center_DHH_SEX <- function(data) {
-  data$DHH_SEX_C <- center_variable(data$DHH_SEX, "mean")
-  return(data)
-}
-
-center_all_variables <- function(data) {
-  if ("DHHGAGE_cont" %in% names(data)) data <- center_DHHGAGE_cont(data)
-  if ("CCC_031" %in% names(data)) data <- center_CCC_031(data)
-  if ("CCC_051" %in% names(data)) data <- center_CCC_051(data)
-  if ("CCC_071" %in% names(data)) data <- center_CCC_071(data)
-  if ("CCC_091" %in% names(data)) data <- center_CCC_091(data)
-  if ("CCC_121" %in% names(data)) data <- center_CCC_121(data)
-  if ("CCC_131" %in% names(data)) data <- center_CCC_131(data)
-  if ("CCC_151" %in% names(data)) data <- center_CCC_151(data)
-  if ("CCC_280" %in% names(data)) data <- center_CCC_280(data)
-  if ("CCC_290" %in% names(data)) data <- center_CCC_290(data)
-  if ("DHH_SEX" %in% names(data)) data <- center_DHH_SEX(data)
-  return(data)
-}
-
-recode_cchs_data <- function(data, cycle, variable_mapping = NULL) {
-  if ("DHH_SEX" %in% names(data) || !is.null(variable_mapping$DHH_SEX)) {
-    var_name <- if (!is.null(variable_mapping$DHH_SEX)) variable_mapping$DHH_SEX else "DHH_SEX"
-    data$DHH_SEX <- recode_DHH_SEX(data[[var_name]])
-  }
-
-  if ("DHHGAGE" %in% names(data) || !is.null(variable_mapping$DHHGAGE)) {
-    var_name <- if (!is.null(variable_mapping$DHHGAGE)) variable_mapping$DHHGAGE else "DHHGAGE"
-    data$DHHGAGE_D <- recode_DHHGAGE_D(data[[var_name]], cycle)
-    data$DHHGAGE_cont <- recode_DHHGAGE_cont(data$DHHGAGE_D)
-  }
-
-  if ("ALCDTTM" %in% names(data) || !is.null(variable_mapping$ALCDTTM)) {
-    var_name <- if (!is.null(variable_mapping$ALCDTTM)) variable_mapping$ALCDTTM else "ALCDTTM"
-    data$ALCDTTM <- recode_ALCDTTM(data[[var_name]], cycle)
-  }
-
-  for (ccc_var in c("CCC_031", "CCC_051", "CCC_071", "CCC_091", "CCC_101",
-                     "CCC_121", "CCC_131", "CCC_151", "CCC_171", "CCC_280", "CCC_290")) {
-    if (ccc_var %in% names(data) || !is.null(variable_mapping[[ccc_var]])) {
-      var_name <- if (!is.null(variable_mapping[[ccc_var]])) variable_mapping[[ccc_var]] else ccc_var
-      data[[ccc_var]] <- recode_CCC_generic(data[[var_name]])
-    }
-  }
-
-  for (adl_var in c("ADL_01", "ADL_02", "ADL_03", "ADL_04", "ADL_05")) {
-    if (adl_var %in% names(data) || !is.null(variable_mapping[[adl_var]])) {
-      var_name <- if (!is.null(variable_mapping[[adl_var]])) variable_mapping[[adl_var]] else adl_var
-      data[[adl_var]] <- recode_ADL_generic(data[[var_name]])
-    }
-  }
-
-  if ("GEN_01" %in% names(data) || !is.null(variable_mapping$GEN_01)) {
-    var_name <- if (!is.null(variable_mapping$GEN_01)) variable_mapping$GEN_01 else "GEN_01"
-    data$GEN_01 <- recode_GEN_01(data[[var_name]])
-  }
-
-  if ("GEN_02B" %in% names(data) || !is.null(variable_mapping$GEN_02B)) {
-    var_name <- if (!is.null(variable_mapping$GEN_02B)) variable_mapping$GEN_02B else "GEN_02B"
-    data$GEN_02B <- recode_GEN_02B(data[[var_name]])
-  }
-
-  if ("GEN_07" %in% names(data) || !is.null(variable_mapping$GEN_07)) {
-    var_name <- if (!is.null(variable_mapping$GEN_07)) variable_mapping$GEN_07 else "GEN_07"
-    data$GEN_07 <- recode_GEN_07(data[[var_name]])
-  }
-
-  if ("GEN_10" %in% names(data) || !is.null(variable_mapping$GEN_10)) {
-    var_name <- if (!is.null(variable_mapping$GEN_10)) variable_mapping$GEN_10 else "GEN_10"
-    data$GEN_10 <- recode_GEN_10(data[[var_name]])
-  }
-
-  if ("GEOGPRV" %in% names(data) || !is.null(variable_mapping$GEOGPRV)) {
-    var_name <- if (!is.null(variable_mapping$GEOGPRV)) variable_mapping$GEOGPRV else "GEOGPRV"
-    data$GEOGPRV <- recode_GEOGPRV(data[[var_name]])
-  }
-
-  if ("DHHGMS" %in% names(data) || !is.null(variable_mapping$DHHGMS)) {
-    var_name <- if (!is.null(variable_mapping$DHHGMS)) variable_mapping$DHHGMS else "DHHGMS"
-    data$DHHGMS <- recode_DHHGMS(data[[var_name]])
-  }
-
-  if ("EDUDR04" %in% names(data) || !is.null(variable_mapping$EDUDR04)) {
-    var_name <- if (!is.null(variable_mapping$EDUDR04)) variable_mapping$EDUDR04 else "EDUDR04"
-    data$EDUDR03 <- recode_EDUDR03(data[[var_name]], cycle)
-  }
-
-  if ("SMKDSTY" %in% names(data) || !is.null(variable_mapping$SMKDSTY)) {
-    var_name <- if (!is.null(variable_mapping$SMKDSTY)) variable_mapping$SMKDSTY else "SMKDSTY"
-    data$SMKDSTY_cat5 <- recode_SMKDSTY_cat5(data[[var_name]], cycle)
-  }
-
-  if ("SDCGCGT" %in% names(data) || !is.null(variable_mapping$SDCGCGT)) {
-    var_name <- if (!is.null(variable_mapping$SDCGCGT)) variable_mapping$SDCGCGT else "SDCGCGT"
-    data$SDCGCGT <- recode_SDCGCGT(data[[var_name]])
-  }
-
-  return(data)
-}
-
-get_variable_mapping <- function(cycle) {
-  mappings <- list(
-    "cchs2001_p" = list(
-      DHH_SEX = "DHHA_SEX",
-      DHHGAGE = "DHHAGAGE",
-      DHHGMS = "DHHAGMS",
-      ALCDTTM = "ALCADTYP",
-      ALW_1 = "ALCA_5",
-      CCC_031 = "CCCA_031",
-      CCC_051 = "CCCA_051",
-      CCC_071 = "CCCA_071",
-      CCC_091 = "CCCA_91B",
-      CCC_101 = "CCCA_101",
-      CCC_121 = "CCCA_121",
-      CCC_131 = "CCCA_131",
-      CCC_151 = "CCCA_151",
-      CCC_171 = "CCCA_171",
-      GEN_01 = "GENA_01",
-      GEN_07 = "GENA_07",
-      GEN_10 = "GENA_10",
-      GEOGPRV = "GEOAGPRV",
-      EDUDR04 = "EDUADR04",
-      SMKDSTY = "SMKADSTY",
-      SMK_01A = "SMKA_01A",
-      HUPDPAD = "HUIADPAD",
-      INCGHH = "INCAGHH",
-      SDCGCGT = "SDCAGRAC",
-      WTS_M = "WTSAM"
+# ── 2013-2014 ─────────────────────────────────────────────────────────────────
+# Variable names from this cycle are used as the harmonized standard
+cchs2013_2014_h <- cchs2013 %>%
+  mutate(
+    # ── Demographics ────────────────────────────────────────────────────────────
+    DHH_SEX = labelled(
+      case_when(DHH_SEX == 6 ~ na_a(), DHH_SEX %in% c(7,8,9) ~ na_b(), TRUE ~ DHH_SEX),
+      labels = c("Male" = 1, "Female" = 2)
     ),
-    "cchs2003_p" = list(
-      DHH_SEX = "DHHC_SEX",
-      DHHGAGE = "DHHCGAGE",
-      DHHGMS = "DHHCGMS",
-      ALCDTTM = "ALCCDTYP",
-      ALW_1 = "ALCC_5",
-      CCC_031 = "CCCC_031",
-      CCC_051 = "CCCC_051",
-      CCC_071 = "CCCC_071",
-      CCC_091 = "CCCC_91B",
-      CCC_101 = "CCCC_101",
-      CCC_121 = "CCCC_121",
-      CCC_131 = "CCCC_131",
-      CCC_151 = "CCCC_151",
-      CCC_171 = "CCCC_171",
-      CCC_280 = "CCCC_280",
-      CCC_290 = "CCCC_290",
-      GEN_01 = "GENC_01",
-      GEN_02B = "GENC_02B",
-      GEN_07 = "GENC_07",
-      GEN_10 = "GENC_10",
-      GEOGPRV = "GEOCGPRV",
-      EDUDR04 = "EDUCDR04",
-      SMKDSTY = "SMKCDSTY",
-      SMK_01A = "SMKC_01A",
-      HUPDPAD = "HUICDPAD",
-      INCGHH = "INCCGHH",
-      SDCGCGT = "SDCCGRAC",
-      WTS_M = "WTSC_M"
+    DHH_AGE = case_when(
+      DHH_AGE == 996 ~ na_a(), DHH_AGE %in% c(997,998,999) ~ na_b(), TRUE ~ DHH_AGE
     ),
-    "cchs2005_p" = list(
-      DHH_SEX = "DHHE_SEX",
-      DHHGAGE = "DHHEGAGE",
-      DHHGMS = "DHHEGMS",
-      ALCDTTM = "ALCEDTYP",
-      ALW_1 = "ALCE_5",
-      CCC_031 = "CCCE_031",
-      CCC_051 = "CCCE_051",
-      CCC_071 = "CCCE_071",
-      CCC_101 = "CCCE_101",
-      CCC_121 = "CCCE_121",
-      CCC_131 = "CCCE_131",
-      CCC_151 = "CCCE_151",
-      CCC_171 = "CCCE_171",
-      CCC_280 = "CCCE_280",
-      CCC_290 = "CCCE_290",
-      GEN_01 = "GENE_01",
-      GEN_02B = "GENE_02B",
-      GEN_07 = "GENE_07",
-      GEN_10 = "GENE_10",
-      GEOGPRV = "GEOEGPRV",
-      EDUDR04 = "EDUEDR04",
-      SMKDSTY = "SMKEDSTY",
-      SMK_01A = "SMKE_01A",
-      HUPDPAD = "HUIEDPAD",
-      INCGHH = "INCEGHH",
-      SDCGCGT = "SDCEGCGT",
-      WTS_M = "WTSE_M"
+    DHH_OWN = labelled(
+      case_when(DHH_OWN == 6 ~ na_a(), DHH_OWN %in% c(7,8,9) ~ na_b(), TRUE ~ DHH_OWN),
+      labels = c("Owner" = 1, "Renter" = 2)
     ),
-    "cchs2007_2008_p" = list(),
-    "cchs2009_2010_p" = list(),
-    "cchs2010_p" = list(),
-    "cchs2011_2012_p" = list(),
-    "cchs2012_p" = list(),
-    "cchs2013_2014_p" = list(),
-    "cchs2014_p" = list(),
-    "cchs2015_2016_p" = list(
-      ALCDTTM = "ALCDVTTM",
-      ALW_1 = "ALW_005",
-      CCC_031 = "CCC_015",
-      CCC_051 = "CCC_050",
-      CCC_071 = "CCC_065",
-      CCC_091 = "CCC_030",
-      CCC_101 = "CCC_095",
-      CCC_121 = "CCC_085",
-      CCC_131 = "CCC_130",
-      CCC_151 = "CCC_090",
-      CCC_280 = "CCC_195",
-      CCC_290 = "CCC_200",
-      GEN_01 = "GEN_005",
-      GEN_02B = "GEN_015",
-      GEN_07 = "GEN_020",
-      GEN_10 = "GEN_030",
-      GEOGPRV = "GEO_PRV",
-      EDUDR04 = "EHG2DVR3",
-      SMKDSTY = "SMKDVSTY",
-      SMK_01A = "SMK_020",
-      HUPDPAD = "HUIDVPAD",
-      INCGHH = "INCDGHH",
-      SDCGCGT = "SDCDGCGT"
+
+    # ── General health ──────────────────────────────────────────────────────────
+    GEN_01 = labelled(
+      case_when(GEN_01 == 6 ~ na_a(), GEN_01 %in% c(7,8,9) ~ na_b(), TRUE ~ GEN_01),
+      labels = c("Excellent" = 1, "Very good" = 2, "Good" = 3, "Fair" = 4, "Poor" = 5)
     ),
-    "cchs2017_2018_p" = list(
-      ALCDTTM = "ALCDVTTM",
-      ALW_1 = "ALW_005",
-      CCC_031 = "CCC_015",
-      CCC_051 = "CCC_050",
-      CCC_071 = "CCC_065",
-      CCC_091 = "CCC_030",
-      CCC_101 = "CCC_095",
-      CCC_121 = "CCC_085",
-      CCC_131 = "CCC_130",
-      CCC_151 = "CCC_090",
-      CCC_280 = "CCC_195",
-      CCC_290 = "CCC_200",
-      GEN_01 = "GEN_005",
-      GEN_02B = "GEN_015",
-      GEN_07 = "GEN_020",
-      GEN_10 = "GEN_030",
-      GEOGPRV = "GEO_PRV",
-      EDUDR04 = "EHG2DVR3",
-      SMKDSTY = "SMKDVSTY",
-      SMK_01A = "SMK_020",
-      INCGHH = "INCDGHH",
-      SDCGCGT = "SDCDGCGT"
+    # GENGSWL derived first from raw GEN_02A2 (codes 0-10) before GEN_02A2 is recoded
+    GENGSWL = labelled(
+      case_when(
+        GEN_02A2 %in% c(9,10)    ~ 1L,
+        GEN_02A2 %in% c(6,7,8)   ~ 2L,
+        GEN_02A2 == 5             ~ 3L,
+        GEN_02A2 %in% c(2,3,4)   ~ 4L,
+        GEN_02A2 %in% c(0,1)     ~ 5L,
+        GEN_02A2 == 96            ~ na_a(),
+        GEN_02A2 %in% c(97,98,99) ~ na_b()
+      ),
+      labels = c("Very satisfied" = 1, "Satisfied" = 2,
+                 "Neither satisfied nor dissatisfied" = 3,
+                 "Dissatisfied" = 4, "Very dissatisfied" = 5)
     ),
-    "cchs2009_s" = list(
-      DHHGAGE = "DHH_AGE",
-      DHHGMS = "DHH_MS",
-      GEOGPRV = "GEO_PRV",
-      INCGHH = "INCDHH"
+    GEN_02A2 = labelled(
+      case_when(GEN_02A2 == 96 ~ na_a(), GEN_02A2 %in% c(97,98,99) ~ na_b(), TRUE ~ GEN_02A2),
+      labels = c("0"=0,"1"=1,"2"=2,"3"=3,"4"=4,"5"=5,"6"=6,"7"=7,"8"=8,"9"=9,"10"=10)
     ),
-    "cchs2010_s" = list(
-      DHHGAGE = "DHH_AGE",
-      DHHGMS = "DHH_MS",
-      GEOGPRV = "GEO_PRV",
-      INCGHH = "INCDHH"
+    GEN_02B = labelled(
+      case_when(GEN_02B == 6 ~ na_a(), GEN_02B %in% c(7,8,9) ~ na_b(), TRUE ~ GEN_02B),
+      labels = c("Excellent" = 1, "Very good" = 2, "Good" = 3, "Fair" = 4, "Poor" = 5)
     ),
-    "cchs2012_s" = list(
-      DHHGAGE = "DHH_AGE",
-      DHHGMS = "DHH_MS",
-      GEOGPRV = "GEO_PRV",
-      INCGHH = "INCDHH"
+    GEN_07 = labelled(
+      case_when(GEN_07 == 6 ~ na_a(), GEN_07 %in% c(7,8,9) ~ na_b(), TRUE ~ GEN_07),
+      labels = c("Not at all" = 1, "Not very" = 2, "A bit" = 3, "Quite a bit" = 4, "Extremely" = 5)
+    ),
+    GEN_09 = labelled(
+      case_when(GEN_09 == 6 ~ na_a(), GEN_09 %in% c(7,8,9) ~ na_b(), TRUE ~ GEN_09),
+      labels = c("Not at all" = 1, "Not very" = 2, "A bit" = 3, "Quite a bit" = 4, "Extremely" = 5)
+    ),
+    GEN_10 = labelled(
+      case_when(GEN_10 == 6 ~ na_a(), GEN_10 %in% c(7,8,9) ~ na_b(), TRUE ~ GEN_10),
+      labels = c("Very strong" = 1, "Somewhat strong" = 2, "Somewhat weak" = 3, "Very weak" = 4)
+    ),
+
+    # ── Chronic conditions ──────────────────────────────────────────────────────
+    CCC_031 = labelled(
+      case_when(CCC_031 == 6 ~ na_a(), CCC_031 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_031),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_051 = labelled(
+      case_when(CCC_051 == 6 ~ na_a(), CCC_051 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_051),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_061 = labelled(
+      case_when(CCC_061 == 6 ~ na_a(), CCC_061 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_061),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_071 = labelled(
+      case_when(CCC_071 == 6 ~ na_a(), CCC_071 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_071),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_091 = labelled(
+      case_when(CCC_091 == 6 ~ na_a(), CCC_091 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_091),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_101 = labelled(
+      case_when(CCC_101 == 6 ~ na_a(), CCC_101 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_101),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_121 = labelled(
+      case_when(CCC_121 == 6 ~ na_a(), CCC_121 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_121),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_151 = labelled(
+      case_when(CCC_151 == 6 ~ na_a(), CCC_151 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_151),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_171 = labelled(
+      case_when(CCC_171 == 6 ~ na_a(), CCC_171 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_171),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_280 = labelled(
+      case_when(CCC_280 == 6 ~ na_a(), CCC_280 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_280),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_290 = labelled(
+      case_when(CCC_290 == 6 ~ na_a(), CCC_290 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_290),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+
+    # ── Anthropometrics ─────────────────────────────────────────────────────────
+    HWTDHTM = case_when(
+      HWTDHTM == 999.96 ~ na_a(), HWTDHTM %in% c(999.97,999.98,999.99) ~ na_b(), TRUE ~ HWTDHTM
+    ),
+    HWTDWTK = case_when(
+      HWTDWTK == 999.96 ~ na_a(), HWTDWTK %in% c(999.97,999.98,999.99) ~ na_b(), TRUE ~ HWTDWTK
+    ),
+
+    # ── Pain ────────────────────────────────────────────────────────────────────
+    HUPDPAD = labelled(
+      case_when(HUPDPAD == 6 ~ na_a(), HUPDPAD %in% c(7,8,9) ~ na_b(), TRUE ~ HUPDPAD),
+      labels = c("No pain" = 1, "Pain does not prevent activity" = 2,
+                 "Prevents a few activities" = 3, "Prevents some activities" = 4,
+                 "Prevents most activities" = 5)
+    ),
+
+    # ── Physical activity ───────────────────────────────────────────────────────
+    PACDEE = case_when(
+      PACDEE == 996 ~ na_a(), PACDEE %in% c(997,998,999) ~ na_b(), TRUE ~ PACDEE
+    ),
+
+    # ── Smoking ─────────────────────────────────────────────────────────────────
+    SMK_01A = labelled(
+      case_when(SMK_01A == 6 ~ na_a(), SMK_01A %in% c(7,8,9) ~ na_b(), TRUE ~ SMK_01A),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    SMKDSTY = labelled(
+      case_when(SMKDSTY == 96 ~ na_a(), SMKDSTY %in% c(97,98,99) ~ na_b(), TRUE ~ SMKDSTY),
+      labels = c("Daily smoker" = 1, "Occasional smoker" = 2, "Always occasional smoker" = 3,
+                 "Former daily smoker" = 4, "Former occasional smoker" = 5, "Never smoked" = 6)
+    ),
+    SMK_203 = case_when(
+      SMK_203 == 996 ~ na_a(), SMK_203 %in% c(997,998,999) ~ na_b(), TRUE ~ SMK_203
+    ),
+    SMK_204 = case_when(
+      SMK_204 == 996 ~ na_a(), SMK_204 %in% c(997,998,999) ~ na_b(), TRUE ~ SMK_204
+    ),
+    SMK_05B = case_when(
+      SMK_05B == 996 ~ na_a(), SMK_05B %in% c(997,998,999) ~ na_b(), TRUE ~ SMK_05B
+    ),
+    SMK_06A = labelled(
+      case_when(SMK_06A == 6 ~ na_a(), SMK_06A %in% c(7,8,9) ~ na_b(), TRUE ~ SMK_06A),
+      labels = c("Less than 1 year" = 1, "1 to < 2 years" = 2,
+                 "2 to < 3 years" = 3, "3 or more years" = 4)
+    ),
+    SMK_207 = case_when(
+      SMK_207 == 996 ~ na_a(), SMK_207 %in% c(997,998,999) ~ na_b(), TRUE ~ SMK_207
+    ),
+    SMK_208 = case_when(
+      SMK_208 == 996 ~ na_a(), SMK_208 %in% c(997,998,999) ~ na_b(), TRUE ~ SMK_208
+    ),
+    SMK_09A = labelled(
+      case_when(SMK_09A == 6 ~ na_a(), SMK_09A %in% c(7,8,9) ~ na_b(), TRUE ~ SMK_09A),
+      labels = c("Less than 1 year" = 1, "1 to < 2 years" = 2,
+                 "2 to < 3 years" = 3, "3 or more years" = 4)
+    ),
+    SMK_09C = case_when(
+      SMK_09C == 996 ~ na_a(), SMK_09C %in% c(997,998,999) ~ na_b(), TRUE ~ SMK_09C
+    ),
+    SMKDSTP = case_when(
+      SMKDSTP == 996 ~ na_a(), SMKDSTP %in% c(997,998,999) ~ na_b(), TRUE ~ SMKDSTP
+    ),
+
+    # ── Alcohol ─────────────────────────────────────────────────────────────────
+    ALCDTTM = labelled(
+      case_when(ALCDTTM == 6 ~ na_a(), ALCDTTM %in% c(7,8,9) ~ na_b(), TRUE ~ ALCDTTM),
+      labels = c("Regular drinker" = 1, "Occasional drinker" = 2,
+                 "Did not drink in last 12 months" = 3)
+    ),
+    ALW_1 = labelled(
+      case_when(ALW_1 == 6 ~ na_a(), ALW_1 %in% c(7,8,9) ~ na_b(), TRUE ~ ALW_1),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    ALW_2A1 = case_when(ALW_2A1 == 996 ~ na_a(), ALW_2A1 %in% c(997,998,999) ~ na_b(), TRUE ~ ALW_2A1),
+    ALW_2A2 = case_when(ALW_2A2 == 996 ~ na_a(), ALW_2A2 %in% c(997,998,999) ~ na_b(), TRUE ~ ALW_2A2),
+    ALW_2A3 = case_when(ALW_2A3 == 996 ~ na_a(), ALW_2A3 %in% c(997,998,999) ~ na_b(), TRUE ~ ALW_2A3),
+    ALW_2A4 = case_when(ALW_2A4 == 996 ~ na_a(), ALW_2A4 %in% c(997,998,999) ~ na_b(), TRUE ~ ALW_2A4),
+    ALW_2A5 = case_when(ALW_2A5 == 996 ~ na_a(), ALW_2A5 %in% c(997,998,999) ~ na_b(), TRUE ~ ALW_2A5),
+    ALW_2A6 = case_when(ALW_2A6 == 996 ~ na_a(), ALW_2A6 %in% c(997,998,999) ~ na_b(), TRUE ~ ALW_2A6),
+    ALW_2A7 = case_when(ALW_2A7 == 996 ~ na_a(), ALW_2A7 %in% c(997,998,999) ~ na_b(), TRUE ~ ALW_2A7),
+    ALWDWKY = case_when(ALWDWKY == 996 ~ na_a(), ALWDWKY %in% c(997,998,999) ~ na_b(), TRUE ~ ALWDWKY),
+
+    # ── Sociodemographic ────────────────────────────────────────────────────────
+    SDCDCGT = labelled(
+      case_when(SDCDCGT == 96 ~ na_a(), SDCDCGT %in% c(97,98,99) ~ na_b(), TRUE ~ SDCDCGT),
+      labels = c("White" = 1, "Black" = 2, "Korean" = 3, "Filipino" = 4, "Japanese" = 5,
+                 "Chinese" = 6, "South Asian" = 7, "Southeast Asian" = 8, "Arab" = 9,
+                 "West Asian" = 10, "Latin American" = 11, "Other" = 12, "Multiple origins" = 13)
+    ),
+    EDUDR04 = labelled(
+      case_when(EDUDR04 == 6 ~ na_a(), EDUDR04 %in% c(7,8,9) ~ na_b(), TRUE ~ EDUDR04),
+      labels = c("Less than secondary" = 1, "Secondary graduation" = 2,
+                 "Some post-secondary" = 3, "Post-secondary graduation" = 4)
+    ),
+    # Pre-2015 LBSDWSS has 4 categories; collapse 3 and 4 to 3 to match post-2015 coding
+    LBSDWSS = labelled(
+      case_when(
+        LBSDWSS %in% c(3,4)   ~ 3L,
+        LBSDWSS == 6           ~ na_a(),
+        LBSDWSS %in% c(7,8,9) ~ na_b(),
+        TRUE                   ~ LBSDWSS
+      ),
+      labels = c("Worked at job or business last week" = 1,
+                 "Absent from work/business" = 2,
+                 "Did not have a job last week" = 3)
+    ),
+    FSCDHFS2 = labelled(
+      case_when(
+        FSCDHFS2 == 6           ~ na_a(),
+        FSCDHFS2 %in% c(7,8,9) ~ na_b(),
+        TRUE                    ~ FSCDHFS2
+      ),
+      labels = c("Food secure" = 0, "Food insecure without hunger" = 1,
+                 "Food insecure with moderate hunger" = 2,
+                 "Food insecure with severe hunger" = 3,
+                 "Severely food insecure" = 4)
+    ),
+    INCDRCA = labelled(
+      case_when(INCDRCA == 96 ~ na_a(), INCDRCA %in% c(97,98,99) ~ na_b(), TRUE ~ INCDRCA),
+      labels = c("1st decile"=1,"2nd decile"=2,"3rd decile"=3,"4th decile"=4,"5th decile"=5,
+                 "6th decile"=6,"7th decile"=7,"8th decile"=8,"9th decile"=9,"10th decile"=10)
+    ),
+    INCDRPR = labelled(
+      case_when(INCDRPR == 96 ~ na_a(), INCDRPR %in% c(97,98,99) ~ na_b(), TRUE ~ INCDRPR),
+      labels = c("1st decile"=1,"2nd decile"=2,"3rd decile"=3,"4th decile"=4,"5th decile"=5,
+                 "6th decile"=6,"7th decile"=7,"8th decile"=8,"9th decile"=9,"10th decile"=10)
+    ),
+    INCDRRS = labelled(
+      case_when(INCDRRS == 96 ~ na_a(), INCDRRS %in% c(97,98,99) ~ na_b(), TRUE ~ INCDRRS),
+      labels = c("1st decile"=1,"2nd decile"=2,"3rd decile"=3,"4th decile"=4,"5th decile"=5,
+                 "6th decile"=6,"7th decile"=7,"8th decile"=8,"9th decile"=9,"10th decile"=10)
+    ),
+
+    # ── Mental health services ──────────────────────────────────────────────────
+    CMH_01K = labelled(
+      case_when(CMH_01K == 6 ~ na_a(), CMH_01K %in% c(7,8,9) ~ na_b(), TRUE ~ CMH_01K),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CMH_01L = case_when(
+      CMH_01L == 996 ~ na_a(), CMH_01L %in% c(997,998,999) ~ na_b(), TRUE ~ CMH_01L
+    ),
+
+    # ── Area-level characteristics ───────────────────────────────────────────────
+    rural = labelled(
+      case_when(rural == 6 ~ na_a(), rural %in% c(7,8,9) ~ na_b(), TRUE ~ rural),
+      labels = c("Rural" = 1, "Urban" = 2)
+    ),
+    material_deprivation = labelled(
+      case_when(material_deprivation == 6           ~ na_a(),
+                material_deprivation %in% c(7,8,9) ~ na_b(),
+                TRUE                                ~ material_deprivation),
+      labels = c("1st quintile (least deprived)" = 1, "2nd quintile" = 2, "3rd quintile" = 3,
+                 "4th quintile" = 4, "5th quintile (most deprived)" = 5)
     )
   )
 
-  if (cycle %in% names(mappings)) {
-    return(mappings[[cycle]])
-  } else {
-    warning(paste("Unknown cycle:", cycle, "- returning empty mapping"))
-    return(list())
-  }
-}
+# ── Combine 2015 and 2017 raw data ─────────────────────────────────────────────
+cchs2015_2018 <- bind_rows_keep_labels(df1 = cchs2015, df2 = cchs2017, prefer = c("df1", "df2"))
 
+# ── 2015-2018: recode and harmonize variable names to 2013 convention ──────────
+cchs2015_2018_h <- cchs2015_2018 %>%
+  mutate(
+    # ── Derive PACDEE from physical activity components ──────────────────────────
+    PACDEE = calculate_energy_expenditure_18plus(paa_045, paa_050, paa_075, paa_080,
+                                                 paadvdys, paadvvig),
 
-center_vars<-function()
+    # ── Demographics ────────────────────────────────────────────────────────────
+    DHH_SEX = labelled(
+      case_when(dhh_sex == 6 ~ na_a(), dhh_sex %in% c(7,8,9) ~ na_b(), TRUE ~ dhh_sex),
+      labels = c("Male" = 1, "Female" = 2)
+    ),
+    DHH_AGE = case_when(
+      dhh_age == 996 ~ na_a(), dhh_age %in% c(997,998,999) ~ na_b(), TRUE ~ dhh_age
+    ),
+    DHH_OWN = labelled(
+      case_when(dhh_own == 6 ~ na_a(), dhh_own %in% c(7,8,9) ~ na_b(), TRUE ~ dhh_own),
+      labels = c("Owner" = 1, "Renter" = 2)
+    ),
+
+    # ── General health ──────────────────────────────────────────────────────────
+    GEN_01 = labelled(
+      case_when(gen_005 == 6 ~ na_a(), gen_005 %in% c(7,8,9) ~ na_b(), TRUE ~ gen_005),
+      labels = c("Excellent" = 1, "Very good" = 2, "Good" = 3, "Fair" = 4, "Poor" = 5)
+    ),
+    # GENGSWL derived first from raw gen_010 before it is recoded to GEN_02A2
+    GENGSWL = labelled(
+      case_when(
+        gen_010 %in% c(9,10)    ~ 1L,
+        gen_010 %in% c(6,7,8)   ~ 2L,
+        gen_010 == 5             ~ 3L,
+        gen_010 %in% c(2,3,4)   ~ 4L,
+        gen_010 %in% c(0,1)     ~ 5L,
+        gen_010 == 96            ~ na_a(),
+        gen_010 %in% c(97,98,99) ~ na_b()
+      ),
+      labels = c("Very satisfied" = 1, "Satisfied" = 2,
+                 "Neither satisfied nor dissatisfied" = 3,
+                 "Dissatisfied" = 4, "Very dissatisfied" = 5)
+    ),
+    GEN_02A2 = labelled(
+      case_when(gen_010 == 96 ~ na_a(), gen_010 %in% c(97,98,99) ~ na_b(), TRUE ~ gen_010),
+      labels = c("0"=0,"1"=1,"2"=2,"3"=3,"4"=4,"5"=5,"6"=6,"7"=7,"8"=8,"9"=9,"10"=10)
+    ),
+    GEN_02B = labelled(
+      case_when(gen_015 == 6 ~ na_a(), gen_015 %in% c(7,8,9) ~ na_b(), TRUE ~ gen_015),
+      labels = c("Excellent" = 1, "Very good" = 2, "Good" = 3, "Fair" = 4, "Poor" = 5)
+    ),
+    GEN_07 = labelled(
+      case_when(gen_020 == 6 ~ na_a(), gen_020 %in% c(7,8,9) ~ na_b(), TRUE ~ gen_020),
+      labels = c("Not at all" = 1, "Not very" = 2, "A bit" = 3, "Quite a bit" = 4, "Extremely" = 5)
+    ),
+    GEN_09 = labelled(
+      case_when(gen_025 == 6 ~ na_a(), gen_025 %in% c(7,8,9) ~ na_b(), TRUE ~ gen_025),
+      labels = c("Not at all" = 1, "Not very" = 2, "A bit" = 3, "Quite a bit" = 4, "Extremely" = 5)
+    ),
+    GEN_10 = labelled(
+      case_when(gen_030 == 6 ~ na_a(), gen_030 %in% c(7,8,9) ~ na_b(), TRUE ~ gen_030),
+      labels = c("Very strong" = 1, "Somewhat strong" = 2, "Somewhat weak" = 3, "Very weak" = 4)
+    ),
+
+    # ── Chronic conditions ──────────────────────────────────────────────────────
+    CCC_031 = labelled(
+      case_when(ccc_015 == 6 ~ na_a(), ccc_015 %in% c(7,8,9) ~ na_b(), TRUE ~ ccc_015),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_051 = labelled(
+      case_when(ccc_050 == 6 ~ na_a(), ccc_050 %in% c(7,8,9) ~ na_b(), TRUE ~ ccc_050),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    # ccc_055 is all 996 in 2017-2018 (question not asked); handle both standard and fill NA codes
+    CCC_061 = labelled(
+      case_when(
+        ccc_055 == 6             ~ na_a(),
+        ccc_055 %in% c(7,8,9)   ~ na_b(),
+        ccc_055 == 996           ~ na_a(),
+        ccc_055 %in% c(997,998,999) ~ na_b(),
+        TRUE                     ~ ccc_055
+      ),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_071 = labelled(
+      case_when(ccc_065 == 6 ~ na_a(), ccc_065 %in% c(7,8,9) ~ na_b(), TRUE ~ ccc_065),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_091 = labelled(
+      case_when(ccc_030 == 6 ~ na_a(), ccc_030 %in% c(7,8,9) ~ na_b(), TRUE ~ ccc_030),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_101 = labelled(
+      case_when(ccc_095 == 6 ~ na_a(), ccc_095 %in% c(7,8,9) ~ na_b(), TRUE ~ ccc_095),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_121 = labelled(
+      case_when(ccc_085 == 6 ~ na_a(), ccc_085 %in% c(7,8,9) ~ na_b(), TRUE ~ ccc_085),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_151 = labelled(
+      case_when(ccc_090 == 6 ~ na_a(), ccc_090 %in% c(7,8,9) ~ na_b(), TRUE ~ ccc_090),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    # ccc_155 is all 996 in 2017-2018 (question not asked)
+    CCC_171 = labelled(
+      case_when(
+        ccc_155 == 6             ~ na_a(),
+        ccc_155 %in% c(7,8,9)   ~ na_b(),
+        ccc_155 == 996           ~ na_a(),
+        ccc_155 %in% c(997,998,999) ~ na_b(),
+        TRUE                     ~ ccc_155
+      ),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_280 = labelled(
+      case_when(ccc_195 == 6 ~ na_a(), ccc_195 %in% c(7,8,9) ~ na_b(), TRUE ~ ccc_195),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_290 = labelled(
+      case_when(ccc_200 == 6 ~ na_a(), ccc_200 %in% c(7,8,9) ~ na_b(), TRUE ~ ccc_200),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+
+    # ── Anthropometrics ─────────────────────────────────────────────────────────
+    HWTDHTM = case_when(
+      hwtdvhtm == 999.96 ~ na_a(), hwtdvhtm %in% c(999.97,999.98,999.99) ~ na_b(), TRUE ~ hwtdvhtm
+    ),
+    HWTDWTK = case_when(
+      hwtdvwtk == 999.96 ~ na_a(), hwtdvwtk %in% c(999.97,999.98,999.99) ~ na_b(), TRUE ~ hwtdvwtk
+    ),
+
+    # ── Physical activity ───────────────────────────────────────────────────────
+    PACDEE = case_when(
+      PACDEE == 996 ~ na_a(), PACDEE %in% c(997,998,999) ~ na_b(), TRUE ~ PACDEE
+    ),
+
+    # ── Smoking ─────────────────────────────────────────────────────────────────
+    # smk_005 has no pre-2015 equivalent; retained under post-2015 name
+    smk_005 = labelled(
+      case_when(smk_005 == 6 ~ na_a(), smk_005 %in% c(7,8,9) ~ na_b(), TRUE ~ smk_005),
+      labels = c("Daily" = 1, "Occasionally" = 2, "Not at all" = 3)
+    ),
+    SMKDSTY = labelled(
+      case_when(smkdvsty == 96 ~ na_a(), smkdvsty %in% c(97,98,99) ~ na_b(), TRUE ~ smkdvsty),
+      labels = c("Daily smoker" = 1, "Occasional smoker" = 2, "Always occasional smoker" = 3,
+                 "Former daily smoker" = 4, "Former occasional smoker" = 5, "Never smoked" = 6)
+    ),
+    # smk_040 is the single age-started-smoking-daily variable post-2015;
+    # maps to both SMK_203 (current daily) and SMK_207 (former daily) from 2013
+    SMK_203 = case_when(
+      smk_040 == 996 ~ na_a(), smk_040 %in% c(997,998,999) ~ na_b(), TRUE ~ smk_040
+    ),
+    SMK_207 = case_when(
+      smk_040 == 996 ~ na_a(), smk_040 %in% c(997,998,999) ~ na_b(), TRUE ~ smk_040
+    ),
+    SMK_204 = case_when(
+      smk_045 == 996 ~ na_a(), smk_045 %in% c(997,998,999) ~ na_b(), TRUE ~ smk_045
+    ),
+    SMK_05B = case_when(
+      smk_050 == 996 ~ na_a(), smk_050 %in% c(997,998,999) ~ na_b(), TRUE ~ smk_050
+    ),
+    SMK_06A = labelled(
+      case_when(smk_060 == 6 ~ na_a(), smk_060 %in% c(7,8,9) ~ na_b(), TRUE ~ smk_060),
+      labels = c("Less than 1 year" = 1, "1 to < 2 years" = 2,
+                 "2 to < 3 years" = 3, "3 or more years" = 4)
+    ),
+    SMK_208 = case_when(
+      smk_075 == 996 ~ na_a(), smk_075 %in% c(997,998,999) ~ na_b(), TRUE ~ smk_075
+    ),
+    SMK_09A = labelled(
+      case_when(smk_080 == 6 ~ na_a(), smk_080 %in% c(7,8,9) ~ na_b(), TRUE ~ smk_080),
+      labels = c("Less than 1 year" = 1, "1 to < 2 years" = 2,
+                 "2 to < 3 years" = 3, "3 or more years" = 4)
+    ),
+    SMK_09C = case_when(
+      smk_090 == 996 ~ na_a(), smk_090 %in% c(997,998,999) ~ na_b(), TRUE ~ smk_090
+    ),
+    SMKDSTP = case_when(
+      smkdvstp == 996 ~ na_a(), smkdvstp %in% c(997,998,999) ~ na_b(), TRUE ~ smkdvstp
+    ),
+
+    # ── Alcohol ─────────────────────────────────────────────────────────────────
+    ALCDTTM = labelled(
+      case_when(alcdvttm == 6 ~ na_a(), alcdvttm %in% c(7,8,9) ~ na_b(), TRUE ~ alcdvttm),
+      labels = c("Regular drinker" = 1, "Occasional drinker" = 2,
+                 "Did not drink in last 12 months" = 3)
+    ),
+    ALW_1 = labelled(
+      case_when(alw_005 == 6 ~ na_a(), alw_005 %in% c(7,8,9) ~ na_b(), TRUE ~ alw_005),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    ALW_2A1 = case_when(alw_010 == 996 ~ na_a(), alw_010 %in% c(997,998,999) ~ na_b(), TRUE ~ alw_010),
+    ALW_2A2 = case_when(alw_015 == 996 ~ na_a(), alw_015 %in% c(997,998,999) ~ na_b(), TRUE ~ alw_015),
+    ALW_2A3 = case_when(alw_020 == 996 ~ na_a(), alw_020 %in% c(997,998,999) ~ na_b(), TRUE ~ alw_020),
+    ALW_2A4 = case_when(alw_025 == 996 ~ na_a(), alw_025 %in% c(997,998,999) ~ na_b(), TRUE ~ alw_025),
+    ALW_2A5 = case_when(alw_030 == 996 ~ na_a(), alw_030 %in% c(997,998,999) ~ na_b(), TRUE ~ alw_030),
+    ALW_2A6 = case_when(alw_035 == 996 ~ na_a(), alw_035 %in% c(997,998,999) ~ na_b(), TRUE ~ alw_035),
+    ALW_2A7 = case_when(alw_040 == 996 ~ na_a(), alw_040 %in% c(997,998,999) ~ na_b(), TRUE ~ alw_040),
+    ALWDWKY = case_when(
+      alwdvwky == 996 ~ na_a(), alwdvwky %in% c(997,998,999) ~ na_b(), TRUE ~ alwdvwky
+    ),
+
+    # ── Sociodemographic ────────────────────────────────────────────────────────
+    SDCDCGT = labelled(
+      case_when(sdcdvcgt == 96 ~ na_a(), sdcdvcgt %in% c(97,98,99) ~ na_b(), TRUE ~ sdcdvcgt),
+      labels = c("White" = 1, "Black" = 2, "Korean" = 3, "Filipino" = 4, "Japanese" = 5,
+                 "Chinese" = 6, "South Asian" = 7, "Southeast Asian" = 8, "Arab" = 9,
+                 "West Asian" = 10, "Latin American" = 11, "Other" = 12, "Multiple origins" = 13)
+    ),
+    # Post-2015 education has 3 categories vs 4 in 2013; no collapsing applied
+    EDUDR04 = labelled(
+      case_when(ehg2dvr3 == 6 ~ na_a(), ehg2dvr3 %in% c(7,8,9) ~ na_b(), TRUE ~ ehg2dvr3),
+      labels = c("Less than secondary" = 1, "Secondary graduation" = 2,
+                 "Post-secondary education" = 3)
+    ),
+    LBSDWSS = labelled(
+      case_when(
+        lbfdvwss == 6           ~ na_a(),
+        lbfdvwss %in% c(7,8,9) ~ na_b(),
+        TRUE                    ~ lbfdvwss
+      ),
+      labels = c("Worked at job or business last week" = 1,
+                 "Absent from work/business" = 2,
+                 "Did not have a job last week" = 3)
+    ),
+    # Post-2015 fscdvhfs has 4 categories (0-3); collapse 1 and 2 into 1, 3 becomes 2
+    FSCDHFS2 = labelled(
+      case_when(
+        fscdvhfs == 0           ~ 0L,
+        fscdvhfs %in% c(1,2)   ~ 1L,
+        fscdvhfs == 3           ~ 2L,
+        fscdvhfs == 6           ~ na_a(),
+        fscdvhfs %in% c(7,8,9) ~ na_b()
+      ),
+      labels = c("Food secure" = 0, "Moderately food insecure" = 1,
+                 "Severely food insecure" = 2)
+    ),
+    INCDRCA = labelled(
+      case_when(incdvsca == 96 ~ na_a(), incdvsca %in% c(97,98,99) ~ na_b(), TRUE ~ incdvsca),
+      labels = c("1st decile"=1,"2nd decile"=2,"3rd decile"=3,"4th decile"=4,"5th decile"=5,
+                 "6th decile"=6,"7th decile"=7,"8th decile"=8,"9th decile"=9,"10th decile"=10)
+    ),
+    INCDRPR = labelled(
+      case_when(incdvspr == 96 ~ na_a(), incdvspr %in% c(97,98,99) ~ na_b(), TRUE ~ incdvspr),
+      labels = c("1st decile"=1,"2nd decile"=2,"3rd decile"=3,"4th decile"=4,"5th decile"=5,
+                 "6th decile"=6,"7th decile"=7,"8th decile"=8,"9th decile"=9,"10th decile"=10)
+    ),
+    INCDRRS = labelled(
+      case_when(incdvsrs == 96 ~ na_a(), incdvsrs %in% c(97,98,99) ~ na_b(), TRUE ~ incdvsrs),
+      labels = c("1st decile"=1,"2nd decile"=2,"3rd decile"=3,"4th decile"=4,"5th decile"=5,
+                 "6th decile"=6,"7th decile"=7,"8th decile"=8,"9th decile"=9,"10th decile"=10)
+    ),
+
+    # ── Mental health services ──────────────────────────────────────────────────
+    # cmh_005 and cmh_010 are all 996 in 2017-2018 (question not asked)
+    CMH_01K = labelled(
+      case_when(
+        cmh_005 == 6              ~ na_a(),
+        cmh_005 %in% c(7,8,9)    ~ na_b(),
+        cmh_005 == 996            ~ na_a(),
+        cmh_005 %in% c(997,998,999) ~ na_b(),
+        TRUE                      ~ cmh_005
+      ),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CMH_01L = case_when(
+      cmh_010 == 996              ~ na_a(),
+      cmh_010 %in% c(997,998,999) ~ na_b(),
+      TRUE                        ~ cmh_010
+    ),
+
+    # ── Area-level characteristics ───────────────────────────────────────────────
+    rural = labelled(
+      case_when(rural == 6 ~ na_a(), rural %in% c(7,8,9) ~ na_b(), TRUE ~ rural),
+      labels = c("Rural" = 1, "Urban" = 2)
+    ),
+    material_deprivation = labelled(
+      case_when(material_deprivation == 6           ~ na_a(),
+                material_deprivation %in% c(7,8,9) ~ na_b(),
+                TRUE                                ~ material_deprivation),
+      labels = c("1st quintile (least deprived)" = 1, "2nd quintile" = 2, "3rd quintile" = 3,
+                 "4th quintile" = 4, "5th quintile (most deprived)" = 5)
+    ),
+
+    # ── Post-2015 only (no pre-2015 equivalent; retain post-2015 names) ──────────
+    drgdvlac = labelled(
+      case_when(drgdvlac == 6 ~ na_a(), drgdvlac %in% c(7,8,9) ~ na_b(), TRUE ~ drgdvlac),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    drgdvyac = labelled(
+      case_when(drgdvyac == 6 ~ na_a(), drgdvyac %in% c(7,8,9) ~ na_b(), TRUE ~ drgdvyac),
+      labels = c("Yes" = 1, "No" = 2)
+    )
+  )
+
+# ── Combine all cycles (2013 labels preferred) ────────────────────────────────
+cchs_all_h <- bind_rows_keep_labels(
+  df1    = cchs2013_2014_h,
+  df2    = cchs2015_2018_h,
+  prefer = c("df1", "df2")
+)
+
+# ── Fill systematically missing variables with tagged_na("c") ─────────────────
+# Untagged NAs arise from variables not collected in a given cycle (e.g. HUPDPAD
+# post-2015, SMK_01A post-2015, drgdvlac pre-2015). These will be labelled as
+# "Question not asked in survey" in downstream table outputs.
+cchs_all_h <- cchs_all_h %>%
+  mutate(across(everything(), fill_na_c))

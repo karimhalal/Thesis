@@ -122,6 +122,21 @@
 #'            INCDRCA (incdvsca post 2015) 10 category income deciles, coded the same in pumf
 #'            INCDVPR (incdvspr post 2015) 10 category income deciles provincial coded the same in pumf
 #'            INCDVRRS (incdvsrs post 2015) 10 cateogry income deciles health region level. coded the same in the pumf
+#'            SDCDCGT (sdcdvcgt post 2015) 13 ategory ethnic identity as follows:
+#'                     1- White
+#'                     2- Black
+#'                     3- Korean
+#'                     4- Filipino
+#'                     5- Japanese
+#'                     6- Chinese
+#'                     7- South Asian
+#'                     8- Southeast asian
+#'                     9- Arab
+#'                     10- West asian
+#'                     11- Latin american
+#'                     12- other
+#'                     13- multiple origin 
+#' 
 #' 
 #' NA tracking for variables
 #'            for continous variables: 996,997,998,or 999 where 996=not applicable and 997,998,999=refusal/DK/missing
