@@ -2,3 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
+
+R
+
+# Skill file build artifacts
+R/Skill.html
+R/Skill_files/
