@@ -2,6 +2,7 @@ library(dplyr)
 library(haven)
 library(cchsflow)
 source(here::here("R", "pumf-mock.R"))
+source(here::here("R", "special_functions.R"))
 
 # ── NA helper functions ────────────────────────────────────────────────────────
 is_na_a <- function(x) {
@@ -17,9 +18,13 @@ na_b <- function() haven::tagged_na("b")
 na_c <- function() haven::tagged_na("c")
 
 # Replaces untagged NAs (systematically missing variables) with tagged_na("c")
+# For integer-backed labelled vectors, tagged_na (double) can't be assigned directly,
+# so fall back to NA_integer_.
 fill_na_c <- function(x) {
   untagged <- is.na(x) & !haven::is_tagged_na(x)
-  x[untagged] <- haven::tagged_na("c")
+  if (!any(untagged)) return(x)
+  filler <- if (is.integer(unclass(x))) NA_integer_ else haven::tagged_na("c")
+  x[untagged] <- filler
   x
 }
 
@@ -216,10 +221,16 @@ cchs2013_2014_h <- cchs2013 %>%
                  "Chinese" = 6, "South Asian" = 7, "Southeast Asian" = 8, "Arab" = 9,
                  "West Asian" = 10, "Latin American" = 11, "Other" = 12, "Multiple origins" = 13)
     ),
-    EDUDR04 = labelled(
-      case_when(EDUDR04 == 6 ~ na_a(), EDUDR04 %in% c(7,8,9) ~ na_b(), TRUE ~ EDUDR04),
+    # Collapse cats 3 (some post-secondary) and 4 (post-secondary grad) into 3
+    EDUDR03 = labelled(
+      case_when(
+        EDUDR04 %in% c(3,4)   ~ 3L,
+        EDUDR04 == 6           ~ na_a(),
+        EDUDR04 %in% c(7,8,9) ~ na_b(),
+        TRUE                   ~ EDUDR04
+      ),
       labels = c("Less than secondary" = 1, "Secondary graduation" = 2,
-                 "Some post-secondary" = 3, "Post-secondary graduation" = 4)
+                 "Post-secondary education" = 3)
     ),
     # Pre-2015 LBSDWSS has 4 categories; collapse 3 and 4 to 3 to match post-2015 coding
     LBSDWSS = labelled(
@@ -493,8 +504,7 @@ cchs2015_2018_h <- cchs2015_2018 %>%
                  "Chinese" = 6, "South Asian" = 7, "Southeast Asian" = 8, "Arab" = 9,
                  "West Asian" = 10, "Latin American" = 11, "Other" = 12, "Multiple origins" = 13)
     ),
-    # Post-2015 education has 3 categories vs 4 in 2013; no collapsing applied
-    EDUDR04 = labelled(
+    EDUDR03 = labelled(
       case_when(ehg2dvr3 == 6 ~ na_a(), ehg2dvr3 %in% c(7,8,9) ~ na_b(), TRUE ~ ehg2dvr3),
       labels = c("Less than secondary" = 1, "Secondary graduation" = 2,
                  "Post-secondary education" = 3)
