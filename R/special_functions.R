@@ -378,17 +378,26 @@ multiple_conditions_fun2 <-
 #' @return a dataframe which binds columns with the same variable name, preserving the labels following the
 #' order identified in the prefer argument
 #' 
-
 bind_rows_keep_labels<-function(df1, df2, prefer=c("df1", "df2")){
   prefer<-match.arg(prefer)
 
-  #extract variable and value labels from existing 
-  lab1<-var_label(df1)
-  lab2<-var_label(df2)
-  val1<-lapply(df1, val_labels)
-  val2<-lapply(df2,val_labels)
+  # Safe extractors: return NULL rather than erroring on plain data frames
+  .safe_var_label <- function(df) {
+    tryCatch(var_label(df), error = function(e) setNames(vector("list", ncol(df)), names(df)))
+  }
+  .safe_val_labels <- function(col) {
+    lbl <- tryCatch(val_labels(col), error = function(e) NULL)
+    # Discard unnamed label vectors (malformed haven import); they cannot be
+    # passed to labelled() and are not meaningful without label text
+    if (!is.null(lbl) && length(lbl) > 0 && is.null(names(lbl))) NULL else lbl
+  }
 
-  #bind rows 
+  lab1 <- .safe_var_label(df1)
+  lab2 <- .safe_var_label(df2)
+  val1 <- lapply(df1, .safe_val_labels)
+  val2 <- lapply(df2, .safe_val_labels)
+
+  #bind rows
   out<-bind_rows(df1,df2)
 
   #retrieve the column names of the combination
@@ -416,7 +425,7 @@ bind_rows_keep_labels<-function(df1, df2, prefer=c("df1", "df2")){
     #do the same extraction for each variable category
     v1<-val1[[nm]]
     v2<-val2[[nm]]
-    
+
     #conflicting values fix
     if(!is.null(v1) && !is.null(v2) && !identical(v1,v2)){
       warning(paste("Conflicting value labels for column:", nm, "-using", prefer))
@@ -430,20 +439,31 @@ bind_rows_keep_labels<-function(df1, df2, prefer=c("df1", "df2")){
 
   }
 
-  #other fixes- claude generated to work around errors during testing
-  ##null error fix discovered during testing
+  # Apply variable labels only when any were found
   combined_var_labels<-Filter(Negate(is.null), combined_var_labels)
-  var_label(out)<-combined_var_labels
+  if(length(combined_var_labels) > 0){
+    out <- tryCatch({
+      var_label(out) <- combined_var_labels
+      out
+    }, error = function(e) {
+      warning("Could not apply variable labels: ", conditionMessage(e))
+      out
+    })
+  }
 
-  #fix for type coercion error caused my merging raw character variables from cohort dataset (ICES)
+  # Apply value labels; safe_val_labels() already discarded any unnamed vectors
   for(nm in names(out)){
     v1<-combined_val_labels[[nm]]
     if(!is.null(v1) && length(v1)>0){
       col<-out[[nm]]
       if(is.numeric(col)||is.integer(col)){
-        out[[nm]]<-labelled(col, v1, label = combined_var_labels[[nm]])
-      } else {
-        warning("Skipping value labels for column:", nm, "-incompatible type")
+        out[[nm]] <- tryCatch(
+          labelled(col, v1, label = combined_var_labels[[nm]]),
+          error = function(e) {
+            warning("Could not apply value labels for column '", nm, "': ", conditionMessage(e))
+            col
+          }
+        )
       }
     }
   }
@@ -451,3 +471,34 @@ bind_rows_keep_labels<-function(df1, df2, prefer=c("df1", "df2")){
   out
 
 }
+
+calculate_energy_expenditure_18plus <-
+  function(PAA_045, PAA_050, PAA_075, PAA_080, PAADVDYS, PAADVVIG) {
+    # Leisure activity for adults (18+)
+    leisure_adult <-
+      if_else2(
+        !is.na(PAA_045) & !is.na(PAA_050) &
+          !is.na(PAA_075) & !is.na(PAA_080),
+        ((PAA_045) * 60 + (PAA_050) + (PAA_075) * 60 + (PAA_080)),
+        if_else2(
+          PAA_045 == "NA(a)" | PAA_050 == "NA(a)" |
+            PAA_075 == "NA(a)" | PAA_080 == "NA(a)",
+          haven::tagged_na("a"), haven::tagged_na("b")
+        )
+      )
+
+    # Energy expenditure calculation
+    physical_activity <-
+      if_else2(
+        !is.na(PAADVDYS) & !is.na(PAADVVIG) & !is.na(leisure_adult),
+        ((((leisure_adult) - (PAADVVIG)) * 3 + (PAADVVIG) * 6) / 7 * (PAADVDYS) / 60),
+        if_else2(
+          leisure_adult == "NA(a)" | PAADVDYS == "NA(a)" | PAADVVIG == "NA(a)",
+          haven::tagged_na("a"), haven::tagged_na("b")
+        )
+      )
+
+    return(physical_activity)
+  }
+
+

@@ -77,7 +77,7 @@ each day of that week.
 | Downstream | `SMK_204` | Number of cigarettes per day (current daily) | Continuous |
 
 **Rule:** If `SMKDSTY != 1` (not a current daily smoker), then
-`SMK_203 = NA` and `SMK_204 = NA`.
+`SMK_203 = Na(a)` and `SMK_204 = NA(a)`.
 
 **Rationale:** Age of smoking onset and current daily cigarette count are only
 applicable to current daily smokers. These are structural NAs, not randomly
@@ -140,7 +140,7 @@ now stopped.
 
 ---
 
-### 7. Drug use— Lifetime and yearly variables
+### 8. Drug use— Lifetime and yearly variables
 | Role | Variable | Label | Coding |
 | Gate | `drgdvlac` | Illicit Drug Use- Lifetime| Categorical: yes=1, no=2 |
 | Downstream | `drgdvyac` | Illicit Drug Use- 12 Months | Categorical: yes=1, no=2 |

@@ -112,7 +112,7 @@
 #'            SDCDCGT(sdcdvcgt post-2015) ethnic identity 13 category: white, black, korean, filipino, japanese, chinese, south asian, south east asian, arab, west asian, latin american, other, multiple origin. It is SDCGCGT in 2013 pumf and SDCDGCGT in the post 2015 pumf, both which have only 2 categories(white and non white- corresponding to 1 and 2) 
 #'            EDUDR04(ehg2dvr3 post-2015) individual educational attainment 4 categories pre 2015: less than secondary, secondary grad, some post-secondary, post-secondary grad and 3 categories post 2015: less than secondary school, secondary grad, post-secondary education. Coded the same in the pumf just copy the values over
 #'            CMH_01K(cmh_005 post-2015) consulted a mental health profesional- binary yes, no (1,2). In 2017-2018, this variable is missing but it is still available as a column but populated completely with 996
-#'            CMH_01L(cmh_005 post-2015) number of times consulted a mental health profesional last year- continous (only whole numbers). In 2017-2018, this variable is missing but it is still available as a column but populated completely with 996
+#'            CMH_01L(cmh_010 post-2015) number of times consulted a mental health profesional last year- continous (only whole numbers). In 2017-2018, this variable is missing but it is still available as a column but populated completely with 996
 #'            rural(same for all cycles) rural status binary yes no. Just have random assignment for the mock data, it should be 17% rural and 83% urban. 
 #'            material_deprivation(same for all cycles) material deprivation quintile (5 cats corresponding to each quintile). Randomly generate this (there is not equivalent in the pumf)
 #'            drgdvlac(only available post 2015) illicit drug use-lifetime (excluding one time marijuana) binary yes no, same coding in the pumf. 
@@ -122,21 +122,6 @@
 #'            INCDRCA (incdvsca post 2015) 10 category income deciles, coded the same in pumf
 #'            INCDVPR (incdvspr post 2015) 10 category income deciles provincial coded the same in pumf
 #'            INCDVRRS (incdvsrs post 2015) 10 cateogry income deciles health region level. coded the same in the pumf
-#'            SDCDCGT (sdcdvcgt post 2015) 13 ategory ethnic identity as follows:
-#'                     1- White
-#'                     2- Black
-#'                     3- Korean
-#'                     4- Filipino
-#'                     5- Japanese
-#'                     6- Chinese
-#'                     7- South Asian
-#'                     8- Southeast asian
-#'                     9- Arab
-#'                     10- West asian
-#'                     11- Latin american
-#'                     12- other
-#'                     13- multiple origin 
-#' 
 #' 
 #' NA tracking for variables
 #'            for continous variables: 996,997,998,or 999 where 996=not applicable and 997,998,999=refusal/DK/missing
@@ -268,7 +253,7 @@ pumf_mock <- function(data_2013, data_2015, data_2017,
 
       DHH_SEX  = .lbl_s(s[["DHH_SEX"]],  "Sex"),
       DHH_AGE  = .cont(age_c,             "Age"),
-      CMH_01H = .cont(cmh_01c, "Number of mental health consultations"),
+      CMH_01L = .cont(cmh_01c, "Number of mental health consultations"),
       DHH_OWN  = .lbl_s(s[["DHH_OWN"]],  "Home ownership"),
       LBSDWSS  = .lbl_s(s[["LBSDWSS"]],  "Working status last week"),
       FSCDHFS2 = .lbl_s(s[["FSCDHFS2"]], "Food security status"),
@@ -358,7 +343,7 @@ pumf_mock <- function(data_2013, data_2015, data_2017,
 
       dhh_sex  = .lbl_s(s[["DHH_SEX"]], "Sex"),
       dhh_age  = .cont(age_c,           "Age"),
-      CMH_010 = .cont(cmh_010c, "Number of mental health consultations"),
+      cmh_010 = .cont(cmh_010c, "Number of mental health consultations"),
       dhh_own  = .lbl_s(s[["DHH_OWN"]], "Home ownership"),
       lbfdvwss = .lbl_s(s[["LBFDVWSS"]], "Working status last week"),
       fscdvhfs = .lbl_s(s[["FSCDVHFS"]], "Food security status"),
@@ -379,7 +364,7 @@ pumf_mock <- function(data_2013, data_2015, data_2017,
       ccc_095  = .lbl_s(s[["CCC_095"]], "Has diabetes"),
       ccc_085  = .lbl_s(s[["CCC_085"]], "Has heart disease"),
       ccc_090  = .lbl_s(s[["CCC_090"]], "Has stroke"),
-      #ccc_155  = .lbl_s(if (is2017) rep(996L, n) else as.integer(s[["CCC_155"]]), "Has bowel disorder"),
+      ccc_155  = .lbl_s(rep(996L, n), "Has bowel disorder"),
       ccc_195  = .lbl_s(s[["CCC_195"]], "Has mood disorder"),
       ccc_200  = .lbl_s(s[["CCC_200"]], "Has anxiety disorder"),
 

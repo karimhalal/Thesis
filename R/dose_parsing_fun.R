@@ -127,7 +127,7 @@ dose_parse_fun<-function(data, din = NULL, dosage_form = NULL, STRENGTH = NULL, 
   #extract the numeric using regular expressions
   df<-df%>%
     mutate(dose_num= case_when(
-      dose_group=="tab/cap"~as.numeric(str_extract(STRENGTH_harmonized, "\\d{1,3}(?:\\.\\d+)?(?=(mg|mcg))")),
+      dose_group=="tab/cap"|din=="00614505"~as.numeric(str_extract(STRENGTH_harmonized, "\\d{1,3}(?:\\.\\d+)?(?=(mg|mcg))")),
       dose_group=="transdermal"~as.numeric(str_extract(STRENGTH_harmonized, "\\d{1,3}(?:\\.\\d+)?(?=(mcg/hr))")),
       dose_group=="liquid" & stringr::str_detect(STRENGTH_harmonized, liquid_pattern_perml)~as.numeric(str_extract(STRENGTH_harmonized, "\\d{1,3}(?:\\.\\d+)?(?=(mg|mcg))")),
       dose_group=="liquid" & stringr::str_detect(STRENGTH_harmonized, liquid_pattern_ratio)~as.numeric(str_extract(STRENGTH_harmonized, "\\d{1,3}(?:\\.\\d+)?(?=(mg|mcg))"))/as.numeric(str_extract(STRENGTH_harmonized, "(?<=/)\\d+(?=ml)")),

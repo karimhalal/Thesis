@@ -205,7 +205,7 @@ tbl_1 <- flextable(tbl_display) %>%
   set_table_properties(layout = "autofit")
 
 
-# ── Weighted helpers ────────────────────────────────────────────────────────────
+# helper functions for continous variables
 wtd_quantile <- function(x, w, probs = c(0.25, 0.5, 0.75)) {
   x <- suppressWarnings(as.numeric(x))
   ok <- !is.na(x) & !is.na(w) & w > 0
@@ -223,7 +223,7 @@ fmt_med_iqr_wtd <- function(x, w) {
   sprintf("%.1f [%.1f, %.1f]", q[2], q[1], q[3])
 }
 
-# ── Build weighted stat rows for one group ─────────────────────────────────────
+# Buyild weighted statistical computation rows
 build_rows_weighted <- function(data) {
   w   <- data[["WTS_L"]]
   out <- list()
