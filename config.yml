@@ -12,3 +12,8 @@ default:
     cchs2013_2014: !expr here::here("Data", "cchs2013_2014.RData")
     cchs2015_2016: !expr here::here("Data", "cchs2015_2016.RData")
     cchs2017_2018: !expr here::here("Data", "cchs2017_2018.RData")
+#exclusion paramters
+dayssupl: 1
+quantity: 2
+dosage_form: "Inj*"
+
