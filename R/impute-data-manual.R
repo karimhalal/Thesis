@@ -16,37 +16,38 @@ source(here::here("R",""))
 #'   (1 = event occurred, 0 = censored)
 #' @return \code{data} with an additional column \code{nelson_aalen_h} containing
 #'   the Nelson-Aalen cumulative hazard at each observation's survival time
-add_nelson_aalen_h <- function(data, survival_time, event_indicator) {
-  times  <- data[[survival_time]]
-  events <- as.integer(data[[event_indicator]])
-
-  event_times <- sort(unique(times[events == 1L]))
-
-  # Cumulative hazard at each unique event time: H(t) = sum_{s <= t} d_s / n_s
-  cumhaz <- cumsum(vapply(event_times, function(t) {
-    sum(events[times == t]) / sum(times >= t)
-  }, numeric(1)))
-
-  # Assign H(t_i) to each row based on its observed survival time
-  data$nelson_aalen_h <- vapply(times, function(t) {
-    idx <- which(event_times <= t)
-    if (length(idx) == 0L) 0 else cumhaz[max(idx)]
-  }, numeric(1))
-
+add_nelson_aalen_h <- function(
+    data,
+    time_var         = "time_to_event",
+    event_var        = "event_type",
+    event_of_interest = 1L
+) {
+  event_ind <- as.integer(data[[event_var]] == event_of_interest)
+  fit <- survival::survfit(survival::Surv(data[[time_var]], event_ind) ~ 1, type = "fh")
+  # Right-continuous step function: H(t) = 0 before first event, then jumps
+  H_fn <- stepfun(fit$time, c(0, fit$cumhaz))
+  data$nelson_aalen_h <- H_fn(data[[time_var]])
   data
 }
 
-predictor_list<-c("bmi_adj", "DHH_AGE", "DHH_SEX", "DHH_OWN", "PACDEE", "CCC_290", "CCC_280", "rural", "material deprivation", "EDUDR03", "SDCDCGT", "CCC_051", "Surveycycle")
+predictor_list<-c("bmi_adj", "DHH_AGE", "DHH_SEX", "DHH_OWN", "DHH_MS", "PACDEE", "CCC_290", "CCC_280", "rural", "material_deprivation", "EDUDR03", "SDCDCGT", "CCC_051", "CCC", "Surveycycle")
 missing_imp_variables_binary<-c("CCC_171", "CCC_061")
 impute_vars_cont<-c("ALWDWKY")
-impute_vars_multi<-c("drgdvyac", "drgdvlac", "CMH_01L", "HUPDPAD", "INCDVRRS", "INCDVPR", "INCDRCA", "FSCDHFS2")
+impute_vars_multi<-c("drgdvyac", "drgdvlac", "CMH_01L", "HUPDPAD", "INCDVRRS", "INCDVPR", "INCDRCA", "FSCDHFS2", "SMKDSTY")
 impute_vars_binary<-c("CMH_01K")
+interaction_vars<-list(
+  AGE_X_BMI=c("BMI", "DHH_AGE"),
+  DHH_SEX_X_CCC_290=
+)
 #' Imputes a dataset using MICE with manually specified variables and predictors
 #'
 #'
-#' @param data data.frame containing harmonized CCHS data. Factor columns may
-#'   contain tagged-NA levels ("NA(a)", "NA(b)", "NA(c)"); these are converted
-#'   to real \code{NA} internally before MICE is called.
+#' @param data data.frame containing harmonized CCHS data. \code{haven_labelled}
+#'   columns are automatically converted to factors before MICE runs; tagged NAs
+#'   become real \code{NA}.
+#' @param ordered_factor_vars character vector of column names that should be
+#'   treated as ordered factors. Applies to \code{haven_labelled}, \code{character},
+#'   and plain \code{factor} columns.
 #' @param impute_vars_cont character vector of continuous variable names to impute
 #'   (MICE method: predictive mean matching)
 #' @param impute_vars_binary character vector of binary variable names to impute
@@ -58,11 +59,10 @@ impute_vars_binary<-c("CMH_01K")
 #'   variable. Every variable across all three imputation vectors (and the
 #'   \code{missing_imp_vars_*} vectors) must have an entry here.
 #' @param missing_imp_vars_cont character vector of continuous predictor
-#'   variables that are themselves missing. These are imputed jointly with the
-#'   main variables but will be performed first in each MICE iteration and then will be
-#'.  used to impute the final predictor variables
+#'   variables that are themselves missing. Imputed jointly with all other
+#'   imputation targets in the same MICE call.
 #' @param missing_imp_vars_binary character vector of binary predictor variables
-#'   that are themselves missing (MICE method: logistic regression). 
+#'   that are themselves missing (MICE method: logistic regression).
 #' @param missing_imp_vars_multi character vector of multinomial predictor
 #'   variables that are themselves missing (MICE method: polynomial regression).
 #'   Default \code{character(0)}.
@@ -102,6 +102,7 @@ impute_data_manual <- function(
   impute_vars_binary,
   impute_vars_multi,
   predictor_list,
+  ordered_factor_vars              = character(0),
   missing_imp_vars_cont            = character(0),
   missing_imp_vars_binary          = character(0),
   missing_imp_vars_multi           = character(0),
@@ -114,6 +115,9 @@ impute_data_manual <- function(
   m     = 1,
   maxit = 1
 ) {
+  # 0. Coerce all columns to canonical R types before any downstream logic runs
+  data <- .coerce_cchs_types(data, ordered_factor_vars)
+
   # 1. Nelson-Aalen: add cumulative hazard as auxiliary variable (White & Royston 2009)
   if (!is.null(survival_time) && !is.null(event_indicator)) {
     data <- add_nelson_aalen_h(data, survival_time, event_indicator)
@@ -152,20 +156,10 @@ impute_data_manual <- function(
 
   .validate_imputation_inputs(data, all_vars, predictor_list)
 
-  # Build a single method vector and predictor matrix covering all variables.
-  # missing_imp_vars are included with their own methods so MICE imputes them
-  # jointly rather than treating them as observed.
-  method_vector    <- .build_method_vector(data, passive_formulas)
-  predictor_matrix <- .build_predictor_matrix(data, all_vars, predictor_list)
-
-  # Visit order: missing predictors → passive interaction vars (re-derived from
-  # freshly imputed bases) → main imputation targets
-  visit_sequence <- c(all_missing_imp_vars, names(interaction_vars), all_imp_vars)
-
   imp_result <- .run_mice_manual(
     data, all_vars, predictor_list,
-    method_vector, predictor_matrix,
-    visit_sequence, m, maxit,
+    passive_formulas,
+    m, maxit,
     passive_vars = names(interaction_vars)
   )
 
@@ -283,69 +277,53 @@ impute_data_manual <- function(
 }
 
 
-#' Build a named MICE method vector for all columns in the data
-#'
-#' Delegates entirely to \code{mice::make.method()}, which assigns pmm to
-#' numeric, logreg to binary factors, polyreg to unordered multinomial factors,
-#' and polr to ordered factors. Passive formula strings for interaction
-#' variables are layered on top.
-#'
-#' @param data data.frame
-#' @param passive_formulas named character vector of passive formula strings
-#'   (from \code{.build_passive_formulas()}); default \code{character(0)}
-#' @return named character vector, one entry per column in \code{data}
-.build_method_vector <- function(data, passive_formulas = character(0)) {
-  var_names  <- colnames(data)
-  method_vec <- mice::make.method(data)
-
-  for (v in intersect(names(passive_formulas), var_names)) {
-    method_vec[v] <- passive_formulas[v]
-  }
-
-  method_vec
-}
-
-# ── Predictor matrix ──────────────────────────────────────────────────────────
-
-#' Build a MICE predictor matrix from a named list of per-variable predictors
-#'
-#' Rows correspond to variables being imputed; columns to their predictors.
-
-#'
-#' @param data data.frame
-#' @param all_imp_vars character vector of all variables to impute
-#' @param predictor_list named list: variable name -> character vector of predictors
-#' @return integer matrix with dimnames matching \code{colnames(data)}
-.build_predictor_matrix <- function(data, all_imp_vars, predictor_list) {
-  var_names <- colnames(data)
-  n_vars    <- length(var_names)
-
-  pred_matrix <- matrix(
-    0L,
-    nrow = n_vars,
-    ncol = n_vars,
-    dimnames = list(var_names, var_names)
-  )
-
-  for (var in all_imp_vars) {
-    predictors    <- predictor_list[[var]]
-    valid_preds   <- setdiff(intersect(predictors, var_names), var)
-    invalid_preds <- setdiff(predictors, var_names)
-
-    if (length(invalid_preds) > 0) {
-      warning(sprintf(
-        "Predictor(s) for '%s' not found in data and will be ignored: %s",
-        var, paste(invalid_preds, collapse = ", ")
-      ))
-    }
-
-    pred_matrix[var, valid_preds] <- 1L
-  }
-
-  pred_matrix
-}
-
 # ── Data preparation ──────────────────────────────────────────────────────────
+
+#' Coerce all columns to canonical R types for MICE
+#'
+#' Converts every column in \code{data} according to its current class:
+#' \itemize{
+#'   \item \code{haven_labelled} → \code{factor} (levels ordered by numeric
+#'     code ascending, via \code{haven::as_factor()}); promoted to
+#'     \code{ordered} if the column name is in \code{ordered_factor_vars}.
+#'   \item \code{character} → \code{factor} (levels alphabetically sorted);
+#'     promoted to \code{ordered} if in \code{ordered_factor_vars}.
+#'   \item Unordered \code{factor} in \code{ordered_factor_vars} → \code{ordered}.
+#'   \item Plain \code{double} → \code{numeric} (strips any haven attributes).
+#'   \item Plain \code{integer} → \code{integer} (strips any haven attributes).
+#'   \item Everything else is left unchanged.
+#' }
+#'
+#' @param data data.frame
+#' @param ordered_factor_vars character vector of column names to promote to
+#'   ordered factor
+#' @return data.frame with all columns coerced to canonical types
+.coerce_cchs_types <- function(data, ordered_factor_vars = character(0)) {
+  for (col in colnames(data)) {
+    x <- data[[col]]
+
+    if (inherits(x, "haven_labelled")) {
+      f <- haven::as_factor(x, levels = "labels")
+      data[[col]] <- if (col %in% ordered_factor_vars)
+        factor(f, levels = levels(f), ordered = TRUE) else f
+
+    } else if (is.character(x)) {
+      lvls <- if (col %in% ordered_factor_vars) sort(unique(x[!is.na(x)])) else NULL
+      data[[col]] <- factor(x, levels = lvls, ordered = col %in% ordered_factor_vars)
+
+    } else if (is.factor(x) && col %in% ordered_factor_vars && !is.ordered(x)) {
+      data[[col]] <- factor(x, levels = levels(x), ordered = TRUE)
+
+    } else if (is.double(x)) {
+      data[[col]] <- as.numeric(x)
+
+    } else if (is.integer(x)) {
+      data[[col]] <- as.integer(x)
+    }
+  }
+  data
+}
+
 
 #' Prepare data for MICE
 #'
@@ -371,18 +349,11 @@ impute_data_manual <- function(
 
   prepared_data <- data[, vars_to_keep, drop = FALSE]
 
-  # Convert tagged NAs in factor columns to real NA
   factor_vars <- colnames(prepared_data)[sapply(prepared_data, is.factor)]
-
-  prepared_data <- prepared_data %>%
-    dplyr::mutate(dplyr::across(
-      dplyr::all_of(factor_vars),
-      ~ dplyr::if_else(.x %in% c("NA(a)", "NA(b)", "NA(c)"), NA, .x)
-    )) %>%
-    dplyr::mutate(dplyr::across(
-      dplyr::all_of(factor_vars),
-      droplevels
-    ))
+  if (length(factor_vars) > 0) {
+    prepared_data <- prepared_data %>%
+      dplyr::mutate(dplyr::across(dplyr::all_of(factor_vars), droplevels))
+  }
 
   list(
     data       = prepared_data,
@@ -391,7 +362,7 @@ impute_data_manual <- function(
 }
 
 
-#' Run MICE with a custom method vector, predictor matrix, and visit sequence
+#' Run MICE with auto-determined methods and predictor matrix
 #'
 #' Applies CCHS relationships before imputation to zero out conditional
 #' downstream variables for rows with observed upstream "No" responses,
@@ -400,41 +371,37 @@ impute_data_manual <- function(
 #' @param data data.frame
 #' @param all_imp_vars character vector of imputation target variables
 #' @param predictor_list named list of per-variable predictor vectors
-#' @param method_vector named character vector of MICE methods
-#' @param predictor_matrix integer matrix
-#' @param visit_sequence character vector of variable names in visitation order
+#' @param passive_formulas named character vector of passive formula strings
+#'   for interaction variables (from \code{.build_passive_formulas()})
 #' @param m integer number of imputations
 #' @param maxit integer number of iterations
 #' @param passive_vars character vector of passive interaction variable names
 #'   to include in MICE data even if absent from \code{all_imp_vars}
 #' @return named list: \code{mice_result} (mids object), \code{data} (completed data.frame)
 .run_mice_manual <- function(data, all_imp_vars, predictor_list,
-                              method_vector, predictor_matrix,
-                              visit_sequence, m, maxit,
+                              passive_formulas = character(0),
+                              m, maxit,
                               passive_vars = character(0)) {
   # Pre-imputation: zero out conditional variables for observed gate responses
   data <- .apply_cchs_relationships(data)
 
   prepared  <- .prepare_data_for_imputation_manual(data, all_imp_vars, predictor_list,
                                                     passive_vars)
-  prep_cols <- colnames(prepared$data)
 
-  # Subset method vector and predictor matrix to prepared data columns
-  sub_methods <- method_vector[prep_cols]
-  sub_matrix  <- predictor_matrix[prep_cols, prep_cols, drop = FALSE]
-
-  # Resolve visit sequence to column indices within the prepared data frame,
-  # preserving the caller-specified order and dropping any absent variables.
-  sub_visit <- intersect(visit_sequence, prep_cols)
+  # Build method on the prepared dataset so MICE auto-assigns methods per column type,
+  # then overlay passive formulas for interaction variables.
+  method <- mice::make.method(prepared$data)
+  for (v in intersect(names(passive_formulas), names(method))) {
+    if (nzchar(passive_formulas[v])) method[v] <- passive_formulas[v]
+  }
 
   imp_result <- mice::mice(
     prepared$data,
-    m               = m,
-    maxit           = maxit,
-    method          = sub_methods,
-    predictorMatrix = sub_matrix,
-    visitSequence   = sub_visit,
-    nnet.MaxNWts    = 4000
+    m            = m,
+    maxit        = maxit,
+    method       = method,
+    nnet.MaxNWts = 10000,
+    printFlag    = FALSE
   )
 
   imp_data  <- mice::complete(imp_result)
