@@ -31,6 +31,7 @@
 #' @references
 #' Dowell D, Haegerich TM, Chou R. CDC Guideline for Prescribing Opioids for
 #' Chronic Pain. MMWR Recomm Rep 2016;65(No. RR-1):1-49.
+#' 
 #'
 #' @export
 dose_cat_fun <- function(input_data) {
@@ -61,9 +62,9 @@ dose_cat_fun <- function(input_data) {
     tolower(drug_class) == "opioid" & daily_dose >= 100                     ~ 3,
 
     # BZD CATEGORIES (DME)
-    tolower(drug_class) == "bzd" & daily_dose <= 5                          ~ 1,
-    tolower(drug_class) == "bzd" & daily_dose > 5  & daily_dose < 15       ~ 2,
-    tolower(drug_class) == "bzd" & daily_dose >= 15                         ~ 3,
+    tolower(drug_class) == "bzd" & daily_dose <= 20                         ~ 1,
+    tolower(drug_class) == "bzd" & daily_dose > 20  & daily_dose <= 40       ~ 2,
+    tolower(drug_class) == "bzd" & daily_dose > 40                         ~ 3,
 
     #Stimulant categories: methylphenidate equivalents
     tolower(drug_class)=="stimulant" & grepl("amphetamine|dextroamp", Active.Ing) 

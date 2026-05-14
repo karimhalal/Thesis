@@ -5,6 +5,7 @@ source(here::here("R", "dose_parsing_fun.R"))
 source(here::here("R", "oral_eq_fun.R"))
 source(here::here("R", "transpatch_eq_fun.R"))
 source(here::here("R", "dose_cat_fun.R"))
+
 #' @title Flatten NMS Prescription Data to One Row Per Patient
 #'
 #' @description Converts NMS data from long format (one row per prescription) to wide
@@ -18,35 +19,27 @@ source(here::here("R", "dose_cat_fun.R"))
 #' @param nms_data [data.frame / tibble] NMS dataset in long format. This data has been subject
 #' to dose_parsing_fun and has had 
 #'
-#' @param id_col [character] Name of the patient identifier column. Default is \code{"IKN"}.
+#' @param id_col [character] Name of the patient identifier column. Default is "IKN".
 #'
 #' @param sort_by [character] Name of the column used to order prescriptions within each
-#'   patient before pivoting (chronological order). Default is \code{"DT_OF_SERV_TS"}.
+#'   patient before pivoting (chronological order). Default is {"DT_OF_SERV_TS"}.
 #'
-#' @return A tibble with one row per unique patient. Column structure:
-#'   \item{IKN}{Patient identifier (or the column named by \code{id_col})}
-#'   \item{n_prescriptions}{Total number of prescription records for this patient}
-#'   \item{DIN_1, STRENGTH_1, DAYSSUPL_1, ...}{All fields from the 1st prescription}
-#'   \item{DIN_2, STRENGTH_2, DAYSSUPL_2, ...}{All fields from the 2nd prescription}
-#'   \item{...}{Continues up to the maximum number of prescriptions across all patients}
+#' @return A tibble with one row per unique patient.
 #'
-#' Columns for prescription \emph{k} are \code{NA} for patients with fewer than \emph{k}
-#' prescriptions.
 #'
 #' @details
-#' Prescriptions within each patient are sorted by \code{sort_by} before numbering, so
-#' \code{_1} always refers to the earliest prescription and \code{_n} to the latest.
+#' Prescriptions within each patient are sorted by perscription date by default before numbering
 #'
-#' To return to long format, use \code{tidyr::pivot_longer()} on the \code{_[0-9]+} columns.
+#' To return to long format, use: tidyr::pivot_longer() on the joined columns.
 #'
 #' @examples
-#' mock_nms <- generate_mock_nms_data(n_records = 1000, n_patients = 200)
-#' flat <- flatten_nms(mock_nms)
+#' #mock_nms <- generate_mock_nms_data(n_records = 1000, n_patients = 200)
+#' #flat <- flatten_nms(mock_nms)
 #'
 #' # Inspect output
-#' head(flat[, 1:10])
-#' flat$DIN_1
-#' flat$DT_OF_SERV_TS_3  # Date of 3rd prescription (NA if patient has < 3)
+#' #head(flat[, 1:10])
+#' #flat$DIN_1
+#' #flat$DT_OF_SERV_TS_3  # Date of 3rd prescription (NA if patient has < 3)
 #'
 #' @export
 flatten_nms <- function(nms_data, id_col = "ikn", sort_by = "dt_of_serv_ts") {
@@ -101,7 +94,3 @@ flatten_nms<-function(nms_data=NULL, id_col=NULL, sort_col=NULL){
   }
 }
 
-#extract perscription specfic columns to be flattened
-pr_cols<-setdiff(names(nms_data), id_col)
-
-#generate frequency counts to be joined in later

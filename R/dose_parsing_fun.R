@@ -67,12 +67,9 @@ source(here::here("R", "DIN_utils_df.R"))
 #'
 #' 
 #' @example
-#' 
-#apply function to full dataset
-nms_data%>%
-  rowwise()%>%
-  mutate()
-#' @export 
+#' # nms_data %>% rowwise() %>% mutate()
+#'
+#' @export
 
 dose_parse_fun<-function(data, din = NULL, dosage_form = NULL, STRENGTH = NULL, din_list_comb = NULL){
 

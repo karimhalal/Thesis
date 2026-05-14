@@ -26,5 +26,4 @@ get_din_list_builtin <- function() {
   return(din_list)
 }
 
-din_df<-get_din_list_builtin()
-View(din_list)
+din_df <- get_din_list_builtin()
