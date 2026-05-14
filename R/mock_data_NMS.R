@@ -235,19 +235,20 @@
 generate_mock_nms_data <- function(
     n_records = 10000,
     n_patients = 2000,
-    din_list_path = NULL,
     seed = 42
 ) {
 
   # Load required libraries
   library(dplyr)
   library(lubridate)
+  library(here)
 
   # Set seed for reproducibility
   set.seed(seed)
 
-  # Read DIN list
-  din_master <- read.csv(din_list_path, stringsAsFactors = FALSE)
+  # Load built-in DIN list
+  source(here::here("R", "din_data_builtin.R"))
+  din_master <- get_din_list_builtin()
 
   # Clean column names (remove dots from imported column names)
   names(din_master) <- gsub("\\.", "_", names(din_master))
@@ -272,173 +273,32 @@ generate_mock_nms_data <- function(
   sampled_dins <- sample(1:nrow(din_master), n_records, replace = TRUE)
   din <- din_master$DIN_PIN[sampled_dins]
 
-  # Introduce data quality issues:
-  # 10% junk/invalid DINs, 3% missing, 2% improperly formatted
-  set.seed(seed + 2.1)
-  din_issue_type <- sample(
-    c("valid", "junk", "missing", "malformed"),
-    n_records,
-    replace = TRUE,
-    prob = c(0.85, 0.10, 0.03, 0.02)
-  )
-
-  set.seed(seed + 2.2)
-  for (i in 1:n_records) {
-    if (din_issue_type[i] == "junk") {
-      # Generate junk DINs (not in the master list)
-      junk_type <- sample(1:3, 1)
-      if (junk_type == 1) {
-        # Random 8-digit number not in master list
-        din[i] <- as.character(sample(90000000:99999999, 1))
-      } else if (junk_type == 2) {
-        # 7-digit number (too short)
-        din[i] <- as.character(sample(1000000:9999999, 1))
-      } else {
-        # 9-digit number (too long)
-        din[i] <- as.character(sample(100000000:999999999, 1))
-      }
-    } else if (din_issue_type[i] == "missing") {
-      # Missing DIN
-      din[i] <- NA
-    } else if (din_issue_type[i] == "malformed") {
-      # Improperly formatted DINs
-      malform_type <- sample(1:5, 1)
-      if (malform_type == 1) {
-        # Leading zeros removed
-        din[i] <- gsub("^0+", "", din[i])
-      } else if (malform_type == 2) {
-        # Extra leading zeros
-        din[i] <- paste0("00", din[i])
-      } else if (malform_type == 3) {
-        # Contains spaces or hyphens
-        din[i] <- paste0(substr(din[i], 1, 4), "-", substr(din[i], 5, 8))
-      } else {
-        # Partial DIN (incomplete)
-        din[i] <- substr(din[i], 1, sample(4:6, 1))
-      }
-    }
-  }
-
-  # 
-  # 3. Generate MANUFACTURER_CD
-  # 
-  # Extract from DIN master list based on sampled DINs
-  manufacturer_cd <- din_master$Manufacturer_Code[sampled_dins]
-
-  #for invalid DINs, randomly assign the manufacturer code
-  for (i in 1:n_records){
-    if(din_issue_type[i]!="valid"){
-      manufacturer_cd[i]<-sample(c("NOV", "VAL", "HLR", "PFP","PMS", "RPH"),1)
-    }
-  }
-
-  # 
-  # 4. Generate DOSAGE_FORM
-  # 
-  # Extract from DIN master list for all the valid DINs. This might
-  dosage_form <- din_master$Dosage_Form[sampled_dins]
-
-  #for invalid DIN, randomize the most common types
-  for(i in 1:n_records){
-    if(din_issue_type[i]!="valid"){
-      dosage_form[i]<-sample(c(
-  "buccal soluble fil",
-  "cap",
-  "chew tab",
-  "cr cap",
-  "cr tab",
-  "er cap",
-  "er pd for sol",
-  "er tab",
-  "er tab chewable",
-  "o/l",
-  "o/l 500ml",
-  "oral concentrate (cherry flavour)",
-  "oral concentrate (unflavoured)",
-  "oral drops",
-  "oral sol",
-  "rect gel",
-  "rect gel-2x 5mg pk",
-  "rect gel-2x10mg pk",
-  "rect gel-2x15mg pk",
-  "rect sup",
-  "sl tab",
-  "soluble film",
-  "soluble film foil pk.",
-  "sr cap",
-  "sr tab",
-  "sup",
-  "susp",
-  "tab",
-  "tab (chewable)",
-  "topical sol"
-), size = 1)
-    }
-  }
-
 
   #
-  # 5. STRENGTH (Description)
-  # 
-  # Dosage character variable including the dosage quantity (2 or 3 digit number) followed
-  #assign dosage for correctly identified DIN
-  STRENGTH<-din_master$Strength[sampled_dins]
+  # 3. Generate manufacturer_cd (randomly assigned — not in built-in list)
+  #
+  set.seed(seed + 2.5)
+  manufacturer_cd <- sample(c("NOV", "VAL", "HLR", "PFP", "PMS", "RPH"), n_records, replace = TRUE)
 
-  #Generate random doses for invalid DINs based on Dosage forms
-  for(i in 1:n_records){
-    if (din_issue_type[i] != "valid" & grepl("cap", dosage_form[i])){
-      STRENGTH[i]<-as.character(paste(sample(0.25:150, 1), "mg"))
-    } else if (din_issue_type[i]!="valid"&grepl("Trans Patch", dosage_form[i])){
-      STRENGTH[i]<-as.character(paste(sample(c(12, 25, 50, 75, 100, 125), 1), "mcg/hr"))
-    } else if (din_issue_type[i]!="valid"&grepl("o/l", dosage_form[i])){
-      STRENGTH[i]<-as.character(paste(sample(c(1,2,10,25,30, 50, 60, 75), 1), "mg/ml"))
-    } else if (din_issue_type[i]!="valid"&grepl("inj", dosage_form[i])){
-      STRENGTH[i]<-as.character(paste(sample(c(1,2,10,25,30, 50, 60, 75, 100, 200), 1), "mg/ml"))
-    }
-  }
+  #
+  # 4. Generate DOSAGE_FORM
+  #
+  dosage_form <- din_master$Dosage_Form[sampled_dins]
 
+  #
+  # 5. STRENGTH
+  #
+  STRENGTH <- din_master$STRENGTH[sampled_dins]
 
-  # 
+  #
   # 6. Generate DIN_DESC (Description)
-  # 
-  # Description of DIN including the following: BRAND NAME] [GENERIC NAME] [STRENGTH] [DOSAGE FORM] [ROUTE]
-  set.seed(seed + 3)
-
-  din_desc <- mapply(function(brand, strength, form, idx) {
-    # Introduce random spacing variations
-    spacing_type <- sample(1:3, 1)
-
-    if (spacing_type == 1) {
-      # Normal spacing
-      paste(toupper(brand), strength, form, sep = " ")
-    } else if (spacing_type == 2) {
-      # Hyphenated
-      paste(toupper(brand), strength, form, sep = "-")
-    } else {
-      # Sometimes missing space
-      if (runif(1) > 0.5) {
-        paste0(toupper(brand), " ", strength, form)
-      } else {
-        paste(toupper(brand), strength, form, sep = " ")
-      }
-    }
-  },
-  din_master$Brand_Name[sampled_dins],
-  din_master$Strength[sampled_dins],
-  din_master$Dosage_Form[sampled_dins],
-  1:n_records)
-
-  # Introduce some mismatches (5% of records)
-  set.seed(seed + 4)
-  mismatch_indices <- sample(1:n_records, round(0.05 * n_records))
-  if (length(mismatch_indices) > 0) {
-    random_dins <- sample(1:nrow(din_master), length(mismatch_indices), replace = TRUE)
-    din_desc[mismatch_indices] <- toupper(paste(
-      din_master$Brand_Name[random_dins],
-      din_master$Strength[random_dins],
-      din_master$Dosage_Form[random_dins]
-    ))
-  }
+  #
+  # Description of DIN: [ACTIVE INGREDIENTS] [STRENGTH] [DOSAGE FORM]
+  din_desc <- toupper(paste(
+    din_master$Active_Ingredients[sampled_dins],
+    din_master$STRENGTH[sampled_dins],
+    din_master$Dosage_Form[sampled_dins]
+  ))
 
   # 
   # 6. Generate DAYSSUPL (Days Supply)
@@ -449,22 +309,10 @@ generate_mock_nms_data <- function(
   # Constrain to reasonable values (1-365 days)
   dayssupl <- pmin(pmax(dayssupl, 1), 365)
 
-  # Introduce missing values (approximately 5%)
-  set.seed(seed + 6)
-  na_indices <- sample(1:n_records, round(0.05 * n_records))
-  dayssupl[na_indices] <- NA
-
-  # 
+  #
   # 7. Generate CURR_STAT (Current Status)
-  # 
-  # The overwhelming majority of perscriptions will not be reversed (this should be cleaned by the analyst) A = 90%, C = 5%, V = 5%
-  set.seed(seed + 7)
-  curr_stat <- sample(
-    c("A", "C", "V"),
-    n_records,
-    replace = TRUE,
-    prob = c(0.9, 0.05, 0.05)
-  )
+  #
+  curr_stat <- rep("A", n_records)
 
   #
   # 8. Generate DT_OF_SERV_TS (Date of Service)
@@ -508,10 +356,9 @@ generate_mock_nms_data <- function(
   # Constrain to positive values
   quantity <- pmax(quantity, 1)
 
-  # ============================================================================
-  # 10. Generate LICENSING_COLLEGE_PRESCRIBER
-  # ============================================================================
-  # Weighted distribution based on typical prescriber types
+  #
+  # 10. Generate licensing_college_prescriber
+  #
   set.seed(seed + 10)
   licensing_college <- sample(
     c("01", "02", "03", "05", "08", "09", "43", "44", "99", "N0"),
@@ -520,25 +367,33 @@ generate_mock_nms_data <- function(
     prob = c(0.75, 0.02, 0.01, 0.05, 0.01, 0.05, 0.02, 0.05, 0.03, 0.01)
   )
 
-  
+  #
+  # 11. Generate agency_id_enc (10-digit agency identifier, ~5% duplicates)
+  #
+  set.seed(seed + 11)
+  agency_id_enc <- as.character(round(runif(n_records, 1e9, 9.999999e9)))
+  dup_indices <- sample(1:n_records, round(0.05 * n_records))
+  agency_id_enc[dup_indices] <- sample(agency_id_enc[-dup_indices], length(dup_indices), replace = TRUE)
+
   nms_mock_data <- data.frame(
-    IKN = ikn,
-    DIN = din,
-    DIN_DESC = din_desc,
-    MANUFACTURER_CD = manufacturer_cd,
-    STRENGTH=STRENGTH,
-    DOSAGE_FORM = dosage_form,
-    DAYSSUPL = dayssupl,
-    QUANTITY = quantity,
-    DT_OF_SERV_TS = dt_of_serv_ts,
-    CURR_STAT = curr_stat,
-    LICENSING_COLLEGE_PRESCRIBER = licensing_college,
+    ikn = ikn,
+    din = din,
+    din_desc = din_desc,
+    manufacturer_cd = manufacturer_cd,
+    strength = STRENGTH,
+    dosage_form = dosage_form,
+    dayssupl = dayssupl,
+    quantity = quantity,
+    dt_of_serv_ts = dt_of_serv_ts,
+    curr_stat = curr_stat,
+    licensing_college_prescriber = licensing_college,
+    agency_id_enc = agency_id_enc,
     stringsAsFactors = FALSE
   )
 
-  # Sort by IKN and date
+  # Sort by ikn and date
   nms_mock_data <- nms_mock_data %>%
-    arrange(IKN, DT_OF_SERV_TS)
+    arrange(ikn, dt_of_serv_ts)
 
   return(nms_mock_data)
 }
