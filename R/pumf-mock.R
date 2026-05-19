@@ -47,6 +47,7 @@
 #'            CCC_071(ccc_065 post-2015) has HBP categories: yes, no. PUMF file has the same coding
 #'            CCC_091(ccc_030 post-2015) has COPD categories: yes, no. PUMF file has the same coding
 #'            CCC_101(ccc_095 post-2015) has diabetes categories: yes, no. PUMF file has the same coding
+#'            CCC_131(ccc_130 post-2015) has cancer categories: yes, no. PUMF file has the same coding
 #'            CCC_121(ccc_085 post-2015) has heart disease categories: yes, no. PUMF file has the same coding
 #'            CCC_151(ccc_090 post-2015) has stroke categories: yes, no. PUMF file has the same coding
 #'            CCC_171(ccc_155 post-2015) has bowel disorder categories: yes, no. In 2017-2018, this variable is missing but it is still available as a column but populated completely with 996. In the PUMF, there are many 996s but not all of them are.
@@ -198,6 +199,22 @@ library(labelled)
   x
 }
 
+# Survival date: ~70% June 30 2024, remainder uniform between Jan 2013 and June 29 2024
+.gen_survdate <- function(n) {
+  n_june30 <- round(n * 0.70)
+  n_random  <- n - n_june30
+  random_dates <- sample(
+    seq(as.Date("2013-01-01"), as.Date("2024-06-29"), by = "day"),
+    n_random, replace = TRUE
+  )
+  sample(c(rep(as.Date("2024-06-30"), n_june30), random_dates))
+}
+
+# Event flag: 0=censored (80%), 1=event (5%), 2=competing event (15%)
+.gen_event_flag <- function(n) {
+  sample(c(0L, 1L, 2L), n, replace = TRUE, prob = c(0.80, 0.05, 0.15))
+}
+
 # label assignment functions
 .lbl_s  <- function(x, lab) labelled(as.integer(x), label = lab)
 .lbl_l  <- function(x, lab) labelled(as.integer(x), label = lab)
@@ -255,6 +272,7 @@ pumf_mock <- function(data_2013, data_2015, data_2017,
       DHH_AGE  = .cont(age_c,             "Age"),
       CMH_01L = .cont(cmh_01c, "Number of mental health consultations"),
       DHH_OWN  = .lbl_s(s[["DHH_OWN"]],  "Home ownership"),
+      DHH_MS   = .lbl_s(s[["DHHGMS"]],   "Marital status"),
       LBSDWSS  = .lbl_s(s[["LBSDWSS"]],  "Working status last week"),
       FSCDHFS2 = .lbl_s(s[["FSCDHFS2"]], "Food security status"),
 
@@ -272,6 +290,7 @@ pumf_mock <- function(data_2013, data_2015, data_2017,
       CCC_071  = .lbl_s(s[["CCC_071"]], "Has high blood pressure"),
       CCC_091  = .lbl_s(s[["CCC_091"]], "Has COPD"),
       CCC_101  = .lbl_s(s[["CCC_101"]], "Has diabetes"),
+      CCC_131  = .lbl_s(s[["CCC_131"]], "Has cancer"),
       CCC_121  = .lbl_s(s[["CCC_121"]], "Has heart disease"),
       CCC_151  = .lbl_s(s[["CCC_151"]], "Has stroke"),
       CCC_171  = .lbl_s(s[["CCC_171"]], "Has bowel disorder"),
@@ -317,8 +336,13 @@ pumf_mock <- function(data_2013, data_2015, data_2017,
       CMH_01K  = .lbl_s(s[["CMH_01K"]],           "Consulted mental health professional in past year"),
 
 
-      rural                = .lbl_s(.inj_na_s(sample(1:2, n, TRUE, c(0.17, 0.83))), "Rural resident"),
-      material_deprivation = .lbl_s(.inj_na_s(sample(1:5, n, TRUE, rep(0.20, 5))),  "Material deprivation quintile")
+      rural                = labelled(.inj_na_s(sample(1:2, n, TRUE, c(0.17, 0.83))),
+                                     labels = c(Rural = 1L, Urban = 2L),
+                                     label  = "Rural resident"),
+      material_deprivation = .lbl_s(.inj_na_s(sample(1:5, n, TRUE, rep(0.20, 5))),  "Material deprivation quintile"),
+
+      survdate   = .gen_survdate(n),
+      event_flag = .gen_event_flag(n)
     )
   }
 
@@ -345,6 +369,7 @@ pumf_mock <- function(data_2013, data_2015, data_2017,
       dhh_age  = .cont(age_c,           "Age"),
       cmh_010 = .cont(cmh_010c, "Number of mental health consultations"),
       dhh_own  = .lbl_s(s[["DHH_OWN"]], "Home ownership"),
+      dhh_ms   = .lbl_s(s[["DHHGMS"]],  "Marital status"),
       lbfdvwss = .lbl_s(s[["LBFDVWSS"]], "Working status last week"),
       fscdvhfs = .lbl_s(s[["FSCDVHFS"]], "Food security status"),
 
@@ -362,6 +387,7 @@ pumf_mock <- function(data_2013, data_2015, data_2017,
       ccc_065  = .lbl_s(s[["CCC_065"]], "Has high blood pressure"),
       ccc_030  = .lbl_s(s[["CCC_030"]], "Has COPD"),
       ccc_095  = .lbl_s(s[["CCC_095"]], "Has diabetes"),
+      ccc_130  = .lbl_s(s[["CCC_130"]], "Has cancer"),
       ccc_085  = .lbl_s(s[["CCC_085"]], "Has heart disease"),
       ccc_090  = .lbl_s(s[["CCC_090"]], "Has stroke"),
       ccc_155  = .lbl_s(rep(996L, n), "Has bowel disorder"),
@@ -410,11 +436,16 @@ pumf_mock <- function(data_2013, data_2015, data_2017,
                    "Consulted mental health professional in past year"),
 
 
-      rural                = .lbl_s(.inj_na_s(sample(1:2, n, TRUE, c(0.17, 0.83))), "Rural resident"),
+      rural                = labelled(.inj_na_s(sample(1:2, n, TRUE, c(0.17, 0.83))),
+                                     labels = c(Rural = 1L, Urban = 2L),
+                                     label  = "Rural resident"),
       material_deprivation = .lbl_s(.inj_na_s(sample(1:5, n, TRUE, rep(0.20, 5))),  "Material deprivation quintile"),
 
       drgdvlac = .lbl_s(s[["DRGDVLAC"]], "Illicit drug use - lifetime (excl. one-time marijuana)"),
-      drgdvyac = .lbl_s(s[["DRGDVYAC"]], "Illicit drug use - last year (excl. one-time marijuana)")
+      drgdvyac = .lbl_s(s[["DRGDVYAC"]], "Illicit drug use - last year (excl. one-time marijuana)"),
+
+      survdate   = .gen_survdate(n),
+      event_flag = .gen_event_flag(n)
     )
   }
 
@@ -425,3 +456,5 @@ pumf_mock <- function(data_2013, data_2015, data_2017,
     cchs_2017 = .make_post2015(data_2017, sample_2017, "2017-2018")
   )
 }
+
+cchs_full <- NULL  # placeholder; populated by cchs_mock() in the run script
