@@ -30,7 +30,7 @@ fill_na_c <- function(x) {
 
 # ── 2013-2014 ─────────────────────────────────────────────────────────────────
 # Variable names from this cycle are used as the harmonized standard
-cchs2013_2014_h <- cchs2013 %>%
+cchs2013_2014_h <- cchs_2013 %>%
   mutate(
     # ── Demographics ────────────────────────────────────────────────────────────
     DHH_SEX = labelled(
@@ -43,6 +43,10 @@ cchs2013_2014_h <- cchs2013 %>%
     DHH_OWN = labelled(
       case_when(DHH_OWN == 6 ~ na_a(), DHH_OWN %in% c(7,8,9) ~ na_b(), TRUE ~ DHH_OWN),
       labels = c("Owner" = 1, "Renter" = 2)
+    ),
+    DHH_MS = labelled(
+      case_when(DHH_MS == 6 ~ na_a(), DHH_MS %in% c(7,8,9) ~ na_b(), TRUE ~ DHH_MS),
+      labels = c("Married" = 1, "Common-law" = 2, "Widowed/Separated/Divorced" = 3, "Single" = 4)
     ),
 
     # ── General health ──────────────────────────────────────────────────────────
@@ -109,6 +113,10 @@ cchs2013_2014_h <- cchs2013 %>%
     ),
     CCC_101 = labelled(
       case_when(CCC_101 == 6 ~ na_a(), CCC_101 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_101),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_131 = labelled(
+      case_when(CCC_131 == 6 ~ na_a(), CCC_131 %in% c(7,8,9) ~ na_b(), TRUE ~ CCC_131),
       labels = c("Yes" = 1, "No" = 2)
     ),
     CCC_121 = labelled(
@@ -244,16 +252,19 @@ cchs2013_2014_h <- cchs2013 %>%
                  "Absent from work/business" = 2,
                  "Did not have a job last week" = 3)
     ),
+    # Collapse 4-cat 2013 coding (0=secure,1=marginal,2=moderate,3=severe) to
+    # 3-cat to match post-2015: 0→0, 1+2→1 (moderately insecure), 3→2 (severely insecure)
     FSCDHFS2 = labelled(
       case_when(
         FSCDHFS2 == 6           ~ na_a(),
         FSCDHFS2 %in% c(7,8,9) ~ na_b(),
-        TRUE                    ~ FSCDHFS2
+        FSCDHFS2 == 0           ~ 0L,
+        FSCDHFS2 %in% c(1, 2)  ~ 1L,
+        FSCDHFS2 == 3           ~ 2L,
+        TRUE                    ~ NA_real_
       ),
-      labels = c("Food secure" = 0, "Food insecure without hunger" = 1,
-                 "Food insecure with moderate hunger" = 2,
-                 "Food insecure with severe hunger" = 3,
-                 "Severely food insecure" = 4)
+      labels = c("Food secure" = 0, "Moderately food insecure" = 1,
+                 "Severely food insecure" = 2)
     ),
     INCDRCA = labelled(
       case_when(INCDRCA == 96 ~ na_a(), INCDRCA %in% c(97,98,99) ~ na_b(), TRUE ~ INCDRCA),
@@ -295,7 +306,7 @@ cchs2013_2014_h <- cchs2013 %>%
   )
 
 # ── Combine 2015 and 2017 raw data ─────────────────────────────────────────────
-cchs2015_2018 <- bind_rows_keep_labels(df1 = cchs2015, df2 = cchs2017, prefer = c("df1", "df2"))
+cchs2015_2018 <- bind_rows_keep_labels(df1 = cchs_2015, df2 = cchs_2017, prefer = c("df1", "df2"))
 
 # ── 2015-2018: recode and harmonize variable names to 2013 convention ──────────
 cchs2015_2018_h <- cchs2015_2018 %>%
@@ -315,6 +326,10 @@ cchs2015_2018_h <- cchs2015_2018 %>%
     DHH_OWN = labelled(
       case_when(dhh_own == 6 ~ na_a(), dhh_own %in% c(7,8,9) ~ na_b(), TRUE ~ dhh_own),
       labels = c("Owner" = 1, "Renter" = 2)
+    ),
+    DHH_MS = labelled(
+      case_when(dhh_ms == 6 ~ na_a(), dhh_ms %in% c(7,8,9) ~ na_b(), TRUE ~ dhh_ms),
+      labels = c("Married" = 1, "Common-law" = 2, "Widowed/Separated/Divorced" = 3, "Single" = 4)
     ),
 
     # ── General health ──────────────────────────────────────────────────────────
@@ -388,6 +403,10 @@ cchs2015_2018_h <- cchs2015_2018 %>%
     ),
     CCC_101 = labelled(
       case_when(ccc_095 == 6 ~ na_a(), ccc_095 %in% c(7,8,9) ~ na_b(), TRUE ~ ccc_095),
+      labels = c("Yes" = 1, "No" = 2)
+    ),
+    CCC_131 = labelled(
+      case_when(ccc_130 == 6 ~ na_a(), ccc_130 %in% c(7,8,9) ~ na_b(), TRUE ~ ccc_130),
       labels = c("Yes" = 1, "No" = 2)
     ),
     CCC_121 = labelled(
@@ -602,3 +621,99 @@ cchs_all_h <- bind_rows_keep_labels(
 # "Question not asked in survey" in downstream table outputs.
 cchs_all_h <- cchs_all_h %>%
   mutate(across(everything(), fill_na_c))
+
+# ── Adjusted BMI (self-report correction; Connor Gorber et al. 2008) ──────────
+cchs_all_h <- cchs_all_h %>%
+  mutate(bmi_adj = cchsflow::adjusted_bmi_fun(
+    DHH_SEX = DHH_SEX,
+    HWTGHTM = HWTDHTM,
+    HWTGWTK = HWTDWTK
+  ))
+
+
+# ── Binary race variable (White vs. Non-white) ────────────────────────────────
+cchs_all_h <- cchs_all_h %>%
+  mutate(
+    race_binary = labelled(
+      case_when(
+        haven::is_tagged_na(SDCDCGT, "a") ~ na_a(),
+        haven::is_tagged_na(SDCDCGT, "b") ~ na_b(),
+        haven::is_tagged_na(SDCDCGT, "c") ~ na_c(),
+        as.numeric(SDCDCGT) == 1           ~ 1,
+        TRUE                                ~ 2
+      ),
+      labels = c("White" = 1, "Non-white" = 2)
+    )
+  )
+
+# ── Respiratory condition and number of chronic conditions ────────────────────
+# CCC_131 (cancer) not collected in 2015-2018 PUMF; treated as No (2) throughout.
+cchs_all_h <- cchs_all_h %>%
+  mutate(
+    resp_condition_der = resp_condition_fun1(
+      DHH_AGE = DHH_AGE,
+      CCC_091  = CCC_091,
+      CCC_031  = CCC_031
+    ),
+    multiple_conditions = multiple_conditions_fun2(
+      CCC_121            = CCC_121,
+      CCC_131            = rep(2L, dplyr::n()),
+      CCC_151            = CCC_151,
+      CCC_171            = CCC_171,
+      CCC_280            = CCC_280,
+      resp_condition_der = resp_condition_der,
+      CCC_051            = CCC_051
+    )
+  ) %>%
+  mutate(
+    multiple_conditions = as.numeric(ifelse(multiple_conditions == "5+", "5", multiple_conditions))
+  )
+
+# ── 5-category smoking status ─────────────────────────────────────────────────
+# Collapses original SMKDSTY categories 4 (Former daily) + 5 (Former occasional) → 4,
+# and recodes 6 (Never smoked) → 5.
+cchs_all_h <- cchs_all_h %>%
+  mutate(
+    SMKDSTY_cat5 = labelled(
+      case_when(
+        haven::is_tagged_na(SMKDSTY, "a") ~ na_a(),
+        haven::is_tagged_na(SMKDSTY, "b") ~ na_b(),
+        haven::is_tagged_na(SMKDSTY, "c") ~ na_c(),
+        as.numeric(SMKDSTY) == 1           ~ 1,
+        as.numeric(SMKDSTY) == 2           ~ 2,
+        as.numeric(SMKDSTY) == 3           ~ 3,
+        as.numeric(SMKDSTY) %in% c(4, 5)   ~ 4,
+        as.numeric(SMKDSTY) == 6           ~ 5
+      ),
+      labels = c(
+        "Daily smoker"            = 1,
+        "Occasional smoker"       = 2,
+        "Former daily smoker"     = 3,
+        "Former occasional smoker"= 4,
+        "Never smoked"            = 5
+      )
+    )
+  )
+
+# ── Survey cycle indicator (1=2013-14, 2=2015-16, 3=2017-18) ─────────────────
+cchs_all_h <- cchs_all_h %>%
+  mutate(SurveyCycle = as.integer(factor(
+    cchs_year, levels = c("2013-2014", "2015-2016", "2017-2018")
+  )))
+
+# ── Simulated survival outcome ────────────────────────────────────────────────
+# event: 0=censored (80%), 1=event of interest (5%), 2=death/competing risk (15%)
+# survt: follow-up time in days [2, 3650]; ~90% of observations exceed 500 days
+cchs_all_h <- cchs_all_h %>%
+  mutate(
+    event = sample(c(0L, 1L, 2L), n(), replace = TRUE, prob = c(0.80, 0.05, 0.15)),
+    survt = as.integer(ifelse(
+      runif(n()) < 0.10,
+      sample(2L:499L,   n(), replace = TRUE),
+      sample(500L:3650L, n(), replace = TRUE)
+    ))
+  )%>%
+  select(DHH_AGE, DHH_MS, DHH_OWN, DHH_SEX, CCC_031, CCC_051, CCC_061, CCC_071, CCC_091, CCC_101, CCC_121, 
+  CCC_131, CCC_151, CCC_171, CCC_280, CCC_290, SMKDSTY_cat5, ALWDWKY, PACDEE, bmi_adj, resp_condition_der, multiple_conditions,
+  GEN_01, GENGSWL, GEN_02B, GEN_07, GEN_09, GEN_10, drgdvlac, drgdvyac, race_binary, HUPDPAD, material_deprivation, INCDRRS, INCDRPR, CMH_01K, CMH_01L,
+  rural, SurveyCycle, survdate, survt, event, EDUDR03, FSCDHFS2, ALCDTTM)
