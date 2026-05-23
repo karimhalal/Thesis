@@ -14,8 +14,6 @@
 #'   - vars_to_truncate: character vector of variable names to truncate
 #'   - skewness_summary: data.frame with skewness statistics for all checked variables
 check_skewness <- function(data, continuous_vars, skewness_threshold = 1) {
-  library(DescTools)
-
   vars_to_truncate <- c()
   skewness_summary <- data.frame(
     variable = character(),
@@ -29,15 +27,16 @@ check_skewness <- function(data, continuous_vars, skewness_threshold = 1) {
 
     if (var %in% names(data)) {
       var_data <- data[[var]]
-      non_missing <- var_data[!is.na(var_data)]
+      non_missing <- as.numeric(var_data[!is.na(var_data)])
 
       if (length(non_missing) > 0) {
 
-        # Compute skewness using DescTools::Skew
-        skew_val <- tryCatch(
-          DescTools::Skew(non_missing, method = 1, na.rm = TRUE),
-          error = function(e) NA
-        )
+        skew_val <- tryCatch({
+          mu <- mean(non_missing)
+          m2 <- mean((non_missing - mu)^2)
+          m3 <- mean((non_missing - mu)^3)
+          if (m2 == 0) NA_real_ else m3 / m2^1.5
+        }, error = function(e) NA_real_)
 
         abs_skew <- abs(skew_val)
 
