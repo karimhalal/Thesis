@@ -6,24 +6,20 @@ source(here("R", "transform-pipeline.R"))
 
 # cchs_all_h expected in environment (created externally via recode pipeline)
 
-# ─── Phase 0: Prepare raw data ────────────────────────────────────────────────
-# id_year is the row key required by merge_and_overwrite() inside every
-# transform function.  It is attached here once and carried through all phases.
+# STEP 0: CREATE ID AND INTITIALIZE CCHSDATA
 data <- cchs_all_h
 data$id_year <- paste0(seq_len(nrow(data)), "_", data$SurveyCycle)
 
 
-# ─── Phase 1: Calibration ─────────────────────────────────────────────────────
+# Pre imputation calibration
 # Run the full transform pipeline on the observed (pre-imputation) data to
 # estimate all learnable constants:
 #   • dummy reference levels  → transformation_info$dummy_refs
 #   • centering means         → transformation_info$center_values
 #   • RCS knot locations      → transformation_info$knot_locations
 #
-# The transformed data produced here is DISCARDED.  Only transformation_info
-# and the two interaction-name lists are kept.  All completed datasets produced
-# after imputation will be transformed with these same constants so that
-# coefficients are comparable across imputations and with the calibration run.
+# The transformed data produced here is DISCARDED.  Transformation information and
+# and interaction terms for passive formulas
 calib               <- run_transform_pipeline(data)
 transformation_info <- calib$transformation_info
 interactions_main   <- calib$interactions_main
@@ -31,7 +27,7 @@ interactions_imputation <- calib$interactions_imputation
 rm(calib)
 
 
-# ─── Phase 2: Nelson-Aalen cumulative hazard ──────────────────────────────────
+# Add Nelso Aalen hazards adjustments
 # event = 1 (NMS death), 2 (other death), 0 (censored).
 # Cause-specific estimator: codes 2 and 0 are treated as censored per
 # White & Royston (2009).  Added to raw data so it is available as a predictor
@@ -99,7 +95,7 @@ interactions_imputation_passive <- setNames(
 )
 
 
-# ─── Phase 4: Variables to impute ────────────────────────────────────────────
+# vars to impute
 # Single unified list — no distinction between covariates missing at random and
 # predictor variables that happen to have missing data.
 impute_vars <- c(
@@ -113,7 +109,6 @@ impute_vars <- c(
   "GEN_10",
   # Smoking (5-category collapsed); also base of age_X_smoking_status
   "SMKDSTY_cat5",
-  "pack_years",
   # Substance use and alcohol
   "drgdvyac",
   "drgdvlac",

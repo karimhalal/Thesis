@@ -1,8 +1,6 @@
 library(mice)
 library(magrittr)
 
-source(here::here("R",""))
-
 #' Add Nelson-Aalen cumulative hazard estimate as an auxiliary imputation variable
 #'
 #' Implements the White & Royston (2009) recommendation: including the
@@ -30,15 +28,7 @@ add_nelson_aalen_h <- function(
   data
 }
 
-predictor_list<-c("bmi_adj", "DHH_AGE", "DHH_SEX", "DHH_OWN", "DHH_MS", "PACDEE", "CCC_290", "CCC_280", "rural", "material_deprivation", "EDUDR03", "SDCDCGT", "CCC_051", "CCC", "Surveycycle")
-missing_imp_variables_binary<-c("CCC_171", "CCC_061")
-impute_vars_cont<-c("ALWDWKY")
-impute_vars_multi<-c("drgdvyac", "drgdvlac", "CMH_01L", "HUPDPAD", "INCDVRRS", "INCDVPR", "INCDRCA", "FSCDHFS2", "SMKDSTY")
-impute_vars_binary<-c("CMH_01K")
-interaction_vars<-list(
-  AGE_X_BMI=c("BMI", "DHH_AGE"),
-  DHH_SEX_X_CCC_290=
-)
+
 #' Imputes a dataset using MICE with manually specified variables and predictors
 #'
 #'
@@ -48,43 +38,20 @@ interaction_vars<-list(
 #' @param ordered_factor_vars character vector of column names that should be
 #'   treated as ordered factors. Applies to \code{haven_labelled}, \code{character},
 #'   and plain \code{factor} columns.
-#' @param impute_vars_cont character vector of continuous variable names to impute
-#'   (MICE method: predictive mean matching)
-#' @param impute_vars_binary character vector of binary variable names to impute
-#'   (MICE method: logistic regression
-#' @param impute_vars_multi character vector of multinomial/ordinal variable names
-#'   to impute (MICE method: polynomial regression)
-#' @param predictor_list named list where each name is a variable to impute and
-#'   each element is a character vector of predictor variable names for that
-#'   variable. Every variable across all three imputation vectors (and the
-#'   \code{missing_imp_vars_*} vectors) must have an entry here.
-#' @param missing_imp_vars_cont character vector of continuous predictor
-#'   variables that are themselves missing. Imputed jointly with all other
-#'   imputation targets in the same MICE call.
-#' @param missing_imp_vars_binary character vector of binary predictor variables
-#'   that are themselves missing (MICE method: logistic regression).
-#' @param missing_imp_vars_multi character vector of multinomial predictor
-#'   variables that are themselves missing (MICE method: polynomial regression).
-#'   Default \code{character(0)}.
-#' @param survival_time character name of the survival/censoring time column.
-#'   When provided together with \code{event_indicator}, a Nelson-Aalen
-#'   cumulative hazard estimate (\code{nelson_aalen_h}) is added to the dataset
-#'   and appended to every variable's predictor list (White & Royston, 2009).
-#' @param event_indicator character name of the event indicator column
-#'   (1 = event, 0 = censored). Required when \code{survival_time} is given.
+#' @param impute_vars character vector of variable names to impute. MICE method
+#'   is auto-detected from each column's R class after type coercion.
+#' @param missing_imp_vars character vector of predictor variables that are
+#'   themselves missing. Imputed jointly with \code{impute_vars} in the same
+#'   MICE call. MICE method auto-detected from column class.
 #' @param additional_imputation_predictors character vector of column names
-#'   (e.g. \code{"event_type"}) to append to every variable's predictor list.
+#'   already present in \code{data} to include as predictors for all imputed
+#'   variables (e.g. \code{"nelson_aalen_h"}, \code{"event_type"}).
 #' @param interaction_vars named list where each name is an interaction variable
 #'   already present in \code{data} and each element is a length-2 character
 #'   vector naming the base components. The interaction variable is passively
 #'   re-derived from mean-centred base components at every MICE iteration, so
 #'   the interaction is always consistent with its imputed parts. Example:
 #'   \code{list(DHH_AGE_C_X_HWTDBMI_C = c("DHH_AGE", "HWTDBMI"))}.
-#' @param skewness_percentile numeric in (0, 1). When supplied, continuous
-#'   imputation variables whose absolute Pearson moment skewness exceeds
-#'   \code{skewness_threshold} are truncated at this percentile before MICE.
-#' @param skewness_threshold numeric absolute skewness threshold above which
-#'   truncation is applied (default 1).
 #' @param m integer number of multiple imputations (default=1)
 #' @param maxit integer number of MICE iterations (default=1)
 #' @return named list with the following items:
@@ -98,66 +65,55 @@ interaction_vars<-list(
 #' }
 impute_data_manual <- function(
   data,
-  impute_vars_cont,
-  impute_vars_binary,
-  impute_vars_multi,
-  predictor_list,
+  impute_vars,
   ordered_factor_vars              = character(0),
-  missing_imp_vars_cont            = character(0),
-  missing_imp_vars_binary          = character(0),
-  missing_imp_vars_multi           = character(0),
-  survival_time                    = NULL,
-  event_indicator                  = NULL,
+  missing_imp_vars                 = character(0),
   additional_imputation_predictors = character(0),
   interaction_vars                 = list(),
-  skewness_percentile              = NULL,
-  skewness_threshold               = 1,
   m     = 1,
   maxit = 1
 ) {
-  # 0. Coerce all columns to canonical R types before any downstream logic runs
+  # 0. Force ALWDWKY to plain numeric before type coercion.
+  # In some CCHS cycles ALWDWKY carries value labels (e.g. "0 drinks" = 0,
+  # "1 drink" = 1 …), which causes .coerce_cchs_types to convert it to a
+  # factor.  MICE then uses polyreg on a variable with potentially hundreds of
+  # levels and fails with all-NA output.  Stripping labels here keeps it
+  # continuous so PMM is used instead.
+  if ("ALWDWKY" %in% colnames(data) &&
+      inherits(data[["ALWDWKY"]], "haven_labelled")) {
+    data[["ALWDWKY"]] <- as.numeric(haven::zap_labels(data[["ALWDWKY"]]))
+  }
+
+  # 0b. Coerce all columns to canonical R types before any downstream logic runs
   data <- .coerce_cchs_types(data, ordered_factor_vars)
 
-  # 1. Nelson-Aalen: add cumulative hazard as auxiliary variable (White & Royston 2009)
-  if (!is.null(survival_time) && !is.null(event_indicator)) {
-    data <- add_nelson_aalen_h(data, survival_time, event_indicator)
-    for (v in names(predictor_list)) {
-      predictor_list[[v]] <- union(predictor_list[[v]], "nelson_aalen_h")
-    }
+  # 0c. Pre-imputation structural zeros: rows where ALCDTTM is *observed* as 3
+  # (non-drinker) have ALWDWKY=NA due to the CCHS skip pattern (996 → na_a()).
+  # PMM has no donor cases with ALCDTTM=3 + observed ALWDWKY, so imputing these
+  # rows produces all-NA. Pre-fill to 0 for confirmed non-drinkers so MICE only
+  # imputes ALWDWKY for rows with genuine random missingness.
+  # Rows where ALCDTTM itself is NA are left alone — .apply_cchs_relationships
+  # handles any that are later imputed as 3.
+  if (all(c("ALCDTTM", "ALWDWKY") %in% colnames(data))) {
+    alcdttm_int  <- suppressWarnings(as.integer(data[["ALCDTTM"]]))
+    rows_to_fix  <- !is.na(alcdttm_int) & alcdttm_int == 3L & is.na(data[["ALWDWKY"]])
+    data[["ALWDWKY"]][rows_to_fix] <- 0
   }
 
-  # 2. Add event_type (or any additional survival predictors) to all predictor lists
-  if (length(additional_imputation_predictors) > 0) {
-    for (v in names(predictor_list)) {
-      predictor_list[[v]] <- union(predictor_list[[v]], additional_imputation_predictors)
-    }
-  }
-
-  # 3. Pre-imputation skewness check and percentile truncation
-  if (!is.null(skewness_percentile)) {
-    data <- .truncate_skewed_vars(
-      data,
-      c(missing_imp_vars_cont, impute_vars_cont),
-      skewness_percentile,
-      skewness_threshold
-    )
-  }
-
-  # 4. Centering constants and passive MICE formulas for interaction terms
+  # 1. Centering constants and passive MICE formulas for interaction terms
   passive_formulas <- character(0)
   if (length(interaction_vars) > 0) {
     centering_constants <- .compute_centering_constants(data, interaction_vars)
     passive_formulas    <- .build_passive_formulas(interaction_vars, centering_constants)
   }
 
-  all_imp_vars         <- c(impute_vars_cont, impute_vars_binary, impute_vars_multi)
-  all_missing_imp_vars <- c(missing_imp_vars_cont, missing_imp_vars_binary, missing_imp_vars_multi)
-  all_vars             <- c(all_missing_imp_vars, all_imp_vars)
+  all_vars <- c(missing_imp_vars, impute_vars)
 
-  .validate_imputation_inputs(data, all_vars, predictor_list)
+  .validate_imputation_inputs(data, all_vars)
 
   imp_result <- .run_mice_manual(
-    data, all_vars, predictor_list,
+    data, all_vars,
+    additional_imputation_predictors,
     passive_formulas,
     m, maxit,
     passive_vars = names(interaction_vars)
@@ -175,102 +131,117 @@ impute_data_manual <- function(
 #' @description
 #' @param data data.frame
 #' @param all_imp_vars character vector of all variables to impute
-#' @param predictor_list named list of predictor vectors
-.validate_imputation_inputs <- function(data, all_imp_vars, predictor_list) {
-  col_names <- colnames(data)
-
-  missing_from_data <- setdiff(all_imp_vars, col_names)
+.validate_imputation_inputs <- function(data, all_imp_vars) {
+  missing_from_data <- setdiff(all_imp_vars, colnames(data))
   if (length(missing_from_data) > 0) {
     stop(sprintf(
       "Imputation variable(s) not found in data: %s",
       paste(missing_from_data, collapse = ", ")
     ))
   }
-
-  missing_from_list <- setdiff(all_imp_vars, names(predictor_list))
-  if (length(missing_from_list) > 0) {
-    stop(sprintf(
-      "No predictor entry in predictor_list for variable(s): %s",
-      paste(missing_from_list, collapse = ", ")
-    ))
-  }
-}
-
-
-#' Check continuous predictors for skewness and truncate at a given percentile
-#'
-#' Truncation is only applied to variables whose absolute Pearson moment
-#' skewness coefficient exceeds \code{threshold}.
-#'
-#' @param data data.frame
-#' @param vars character vector of continuous variable names to check
-#' @param percentile numeric in (0, 1) — upper truncation quantile
-#' @param threshold numeric — absolute skewness threshold above which to truncate
-#' @return data.frame with skewed variables truncated at \code{percentile}
-.truncate_skewed_vars <- function(data, vars, percentile, threshold = 1) {
-  for (v in intersect(vars, colnames(data))) {
-    vals <- data[[v]]
-    obs  <- vals[!is.na(vals)]
-    if (length(obs) < 3L) next
-
-    m        <- mean(obs)
-    s        <- sd(obs)
-    if (s == 0) next
-    skewness <- mean(((obs - m) / s)^3)
-
-    if (abs(skewness) > threshold) {
-      cutoff    <- quantile(vals, probs = percentile, na.rm = TRUE)
-      data[[v]] <- pmin(vals, cutoff)
-    }
-  }
-  data
 }
 
 
 #' Compute available-case means for interaction term base variables
 #'
-#' Means are computed from pre-imputation data (available cases only) and
-#' inlined into passive MICE formulas as centering constants.
+#' Only computes constants for centered interactions (list entries with
+#' \code{center = TRUE}). Raw interactions (character vector entries) are
+#' skipped. Dummy-coded base variables (specified via a \code{dummy_vars}
+#' sub-list) are evaluated as \code{mean(as.numeric(source_col == value))}.
 #'
 #' @param data data.frame (pre-imputation)
-#' @param interaction_vars named list: interaction variable -> length-2 character
-#'   vector of base component column names
-#' @return named numeric vector of available-case means, one per unique base variable
+#' @param interaction_vars named list — see \code{impute_data_manual()} for
+#'   the full format description
+#' @return named list keyed by base variable name; each entry contains
+#'   \code{center_value} and (optionally) \code{dummy} info
 .compute_centering_constants <- function(data, interaction_vars) {
-  base_vars <- unique(unlist(interaction_vars))
-  vapply(base_vars, function(v) mean(data[[v]], na.rm = TRUE), numeric(1))
+  centering_info <- list()
+  for (int_var in names(interaction_vars)) {
+    entry <- interaction_vars[[int_var]]
+    if (is.character(entry)) next
+    center <- entry$center
+    if (is.null(center) || isFALSE(center) || identical(center, c(FALSE, FALSE))) next
+    bases        <- entry$vars
+    dummy_vars   <- entry$dummy_vars
+    center_flags <- if (isTRUE(center)) c(TRUE, TRUE) else center
+    for (i in seq_along(bases)) {
+      if (!center_flags[i]) next
+      v <- bases[i]
+      if (v %in% names(centering_info)) next
+      if (!is.null(dummy_vars) && v %in% names(dummy_vars)) {
+        dv   <- dummy_vars[[v]]
+        vals <- as.numeric(as.character(data[[dv$source]]) == dv$value)
+      } else {
+        vals <- as.numeric(data[[v]])
+      }
+      centering_info[[v]] <- list(
+        center_value = mean(vals, na.rm = TRUE),
+        dummy        = if (!is.null(dummy_vars) && v %in% names(dummy_vars)) dummy_vars[[v]] else NULL
+      )
+    }
+  }
+  centering_info
 }
 
 
 #' Build passive MICE formula strings for interaction variables
 #'
-#' Each interaction variable is re-derived from its two mean-centred base
-#' components at every MICE iteration. Centering constants from
-#' \code{.compute_centering_constants()} are inlined into the formula string.
+#' Three centering modes, controlled by the \code{center} field of each list
+#' entry (character vector entries are always raw):
+#' \itemize{
+#'   \item \code{center = FALSE} or absent, or a plain character vector:
+#'         raw product \code{~ I(var1 * var2)}.
+#'   \item \code{center = TRUE}: both base variables are mean-centred.
+#'   \item \code{center = c(TRUE, FALSE)} (or \code{c(FALSE, TRUE)}):
+#'         only the flagged base variable is centred; the other enters raw.
+#' }
+#' Dummy-coded base variables use \code{as.numeric(as.character(source) == "value")}
+#' syntax when specified via \code{dummy_vars}.
 #'
-#' @param interaction_vars named list: interaction variable -> length-2 character
-#'   vector of base component names
-#' @param centering_constants named numeric vector (from
-#'   \code{.compute_centering_constants()})
-#' @return named character vector of passive formula strings (entries starting
-#'   with \code{~}) suitable for direct assignment into a MICE method vector
-.build_passive_formulas <- function(interaction_vars, centering_constants) {
+#' @param interaction_vars named list — see \code{impute_data_manual()}
+#' @param centering_constants named list from \code{.compute_centering_constants()}
+#' @return named character vector of passive formula strings suitable for
+#'   direct assignment into a MICE method vector
+.build_passive_formulas <- function(interaction_vars, centering_constants = list()) {
   nms      <- names(interaction_vars)
   formulas <- setNames(character(length(nms)), nms)
 
   for (int_var in nms) {
-    bases <- interaction_vars[[int_var]]
-    if (length(bases) != 2L) {
-      stop(sprintf(
-        "interaction_vars entry '%s' must name exactly 2 base components",
-        int_var
-      ))
-    }
-    v1 <- bases[1]; v2 <- bases[2]
-    c1 <- round(centering_constants[[v1]], 1)
-    c2 <- round(centering_constants[[v2]], 1)
+    entry <- interaction_vars[[int_var]]
 
-    formulas[int_var] <- sprintf("~ I((%s - %s) * (%s - %s))", v1, c1, v2, c2)
+    if (is.character(entry)) {
+      if (length(entry) == 1L && startsWith(trimws(entry), "~")) {
+        formulas[int_var] <- entry
+        next
+      }
+      if (length(entry) != 2L)
+        stop(sprintf("interaction_vars entry '%s' must name exactly 2 base components", int_var))
+      formulas[int_var] <- sprintf("~ I(%s * %s)", entry[1], entry[2])
+      next
+    }
+
+    bases <- entry$vars
+    if (length(bases) != 2L)
+      stop(sprintf("interaction_vars entry '%s' must name exactly 2 base components", int_var))
+
+    center <- entry$center
+    center_flags <- if (isTRUE(center)) c(TRUE, TRUE)
+                    else if (is.logical(center) && length(center) == 2L) center
+                    else c(FALSE, FALSE)
+
+    exprs <- sapply(seq_along(bases), function(i) {
+      v <- bases[i]
+      if (!center_flags[i]) return(v)
+      ci   <- centering_constants[[v]]
+      cval <- ci$center_value
+      if (!is.null(ci$dummy)) {
+        dv <- ci$dummy
+        sprintf("(as.numeric(as.character(%s) == \"%s\") - %s)", dv$source, dv$value, cval)
+      } else {
+        sprintf("(%s - %s)", v, cval)
+      }
+    })
+    formulas[int_var] <- sprintf("~ I(%s * %s)", exprs[1], exprs[2])
   }
 
   formulas
@@ -303,9 +274,27 @@ impute_data_manual <- function(
     x <- data[[col]]
 
     if (inherits(x, "haven_labelled")) {
-      f <- haven::as_factor(x, levels = "labels")
-      data[[col]] <- if (col %in% ordered_factor_vars)
-        factor(f, levels = levels(f), ordered = TRUE) else f
+      labs <- attr(x, "labels")
+      # A column is categorical only if it has at least one non-tagged-NA value label.
+      # Continuous haven_labelled vars have NULL labels or only tagged-NA sentinel labels.
+      has_value_labels <- !is.null(labs) &&
+        any(!haven::is_tagged_na(labs))
+      if (has_value_labels) {
+        real_labs <- labs[!haven::is_tagged_na(labs)]
+        if (!is.double(x) || !is.double(real_labs)) {
+          x <- haven::labelled(
+            as.double(unclass(x)),
+            setNames(as.double(labs), names(labs)),
+            label = attr(x, "label", exact = TRUE)
+          )
+        }
+        f <- haven::as_factor(x, levels = "labels")
+        data[[col]] <- if (col %in% ordered_factor_vars)
+          factor(f, levels = levels(f), ordered = TRUE) else f
+      } else {
+        # No real value labels → continuous; strip class, tagged NAs stay as NA.
+        data[[col]] <- haven::zap_labels(x)
+      }
 
     } else if (is.character(x)) {
       lvls <- if (col %in% ordered_factor_vars) sort(unique(x[!is.na(x)])) else NULL
@@ -333,17 +322,18 @@ impute_data_manual <- function(
 #'
 #' @param data data.frame
 #' @param all_imp_vars character vector of imputation target variables
-#' @param predictor_list named list of per-variable predictor vectors
+#' @param additional_predictors character vector of extra columns to include
+#'   (e.g. nelson_aalen_h, event_type) — all are passed to MICE as predictors
 #' @param passive_vars character vector of passive interaction variable names
-#'   to include even if not in \code{all_imp_vars} or \code{predictor_list}
+#'   to include even if not in \code{all_imp_vars}
 #' @return named list:
 #'   \code{data} — prepared data.frame passed to MICE;
 #'   \code{extra_cols} — data.frame of columns excluded from imputation
-.prepare_data_for_imputation_manual <- function(data, all_imp_vars, predictor_list,
+.prepare_data_for_imputation_manual <- function(data, all_imp_vars,
+                                                additional_predictors = character(0),
                                                 passive_vars = character(0)) {
-  all_predictor_vars <- unique(unlist(predictor_list))
-  vars_to_keep       <- intersect(
-    unique(c(all_imp_vars, all_predictor_vars, passive_vars)),
+  vars_to_keep <- intersect(
+    unique(c(all_imp_vars, additional_predictors, passive_vars)),
     colnames(data)
   )
 
@@ -352,6 +342,10 @@ impute_data_manual <- function(
   factor_vars <- colnames(prepared_data)[sapply(prepared_data, is.factor)]
   if (length(factor_vars) > 0) {
     prepared_data <- prepared_data %>%
+      dplyr::mutate(dplyr::across(
+        dplyr::all_of(factor_vars),
+        ~ dplyr::if_else(.x %in% c("NA(a)", "NA(b)", "NA(c)"), NA, .x)
+      )) %>%
       dplyr::mutate(dplyr::across(dplyr::all_of(factor_vars), droplevels))
   }
 
@@ -364,13 +358,11 @@ impute_data_manual <- function(
 
 #' Run MICE with auto-determined methods and predictor matrix
 #'
-#' Applies CCHS relationships before imputation to zero out conditional
-#' downstream variables for rows with observed upstream "No" responses,
-#' preventing MICE from incorrectly imputing those cells.
-#'
 #' @param data data.frame
 #' @param all_imp_vars character vector of imputation target variables
-#' @param predictor_list named list of per-variable predictor vectors
+#' @param additional_predictors character vector of extra predictor columns
+#'   (e.g. nelson_aalen_h, event_type) to include in the MICE dataset.
+#'   These are predictor-only — they are never imputed.
 #' @param passive_formulas named character vector of passive formula strings
 #'   for interaction variables (from \code{.build_passive_formulas()})
 #' @param m integer number of imputations
@@ -378,21 +370,34 @@ impute_data_manual <- function(
 #' @param passive_vars character vector of passive interaction variable names
 #'   to include in MICE data even if absent from \code{all_imp_vars}
 #' @return named list: \code{mice_result} (mids object), \code{data} (completed data.frame)
-.run_mice_manual <- function(data, all_imp_vars, predictor_list,
+.run_mice_manual <- function(data, all_imp_vars,
+                              additional_predictors = character(0),
                               passive_formulas = character(0),
                               m, maxit,
                               passive_vars = character(0)) {
-  # Pre-imputation: zero out conditional variables for observed gate responses
-  data <- .apply_cchs_relationships(data)
-
-  prepared  <- .prepare_data_for_imputation_manual(data, all_imp_vars, predictor_list,
-                                                    passive_vars)
+  prepared <- .prepare_data_for_imputation_manual(data, all_imp_vars,
+                                                   additional_predictors,
+                                                   passive_vars)
 
   # Build method on the prepared dataset so MICE auto-assigns methods per column type,
   # then overlay passive formulas for interaction variables.
   method <- mice::make.method(prepared$data)
   for (v in intersect(names(passive_formulas), names(method))) {
     if (nzchar(passive_formulas[v])) method[v] <- passive_formulas[v]
+  }
+
+  # Set passive interaction columns to all-NA in the prepared data.
+  # Pre-computed interaction columns arrive with partial NAs (wherever a base
+  # variable is missing). When used as predictors, MICE mean-imputes these NAs
+  # to near-constants, collapsing every design matrix to near-singularity and
+  # silently producing all-NA imputed values.  Setting them to all-NA replicates
+  # the working behaviour of the original impute_data(): MICE's internal fitting
+  # routines compute NaN column means for all-NA predictors and drop them from
+  # every model automatically.  The passive formula in `method` still re-derives
+  # each column from its (imputed) base variables at every iteration, so the
+  # completed dataset has consistent interaction terms.
+  for (v in intersect(passive_vars, colnames(prepared$data))) {
+    prepared$data[[v]] <- NA_real_
   }
 
   imp_result <- mice::mice(
@@ -417,15 +422,8 @@ impute_data_manual <- function(
 
 #' Apply hardcoded CCHS conditional variable relationships
 #'
-#' Called both before and after imputation:
-#'
-#'     Before: zeros out conditional downstream variables for rows where
-#'     the upstream gate variable is already observed as "No", so MICE does
-#'     not treat those cells as missing.
-#'
-#'     After: corrects any rows where the gate variable was imputed as "No",
-#'     ensuring downstream variables remain consistent.
-#' }
+#' Called after imputation to correct any rows where a gate variable was
+#' imputed as "No", ensuring downstream variables remain consistent.
 #'
 #' See {Skill_files/special_imputations.md} for full documentation of
 #' each relationship and the rationale for each zeroing/NA decision.
@@ -435,16 +433,23 @@ impute_data_manual <- function(
 .apply_cchs_relationships <- function(data) {
   col_names <- colnames(data)
 
+  # Smoking: pack years
+  # pack_years must be 0 for never-smokers (SMKDSTY_cat5 == 5).
+  if (all(c("pack_years", "SMKDSTY_cat5") %in% col_names)) {
+    smk_vals <- as.character(haven::zap_labels(data$SMKDSTY_cat5))
+    data <- data %>%
+      dplyr::mutate(pack_years = dplyr::if_else(smk_vals == "5", 0, pack_years))
+  }
+
   #Illicit drug use
   #drgdvyac (yearly use of illicit drugs) must be 2 (no) if when
   #drgdvyac (lifetime use of illicit drugs) is recorded as 2 (no)
   if(all(c("drgdvyac", "drgdvlac")%in% col_names)){
-    data<-data%>%
-      mutate(drgdvyac= case_when(
-             drgdvlac==2~2,
-             TRUE~drgdvyac
-      )
-  )
+    data <- data %>%
+      dplyr::mutate(drgdvyac = dplyr::case_when(
+        drgdvlac == 2 ~ as(2, class(drgdvyac)),
+        TRUE ~ drgdvyac
+      ))
   }
   # Mental Health cosults: number of times
   # CMH_01L (number of consultations last year, continuous) must be 0 when

@@ -20,13 +20,6 @@ run_transform_pipeline <- function(data, transformation_info = NULL) {
 
   if (is.null(transformation_info)) transformation_info <- list()
 
-  # ── Step 1: Dummy encode ───────────────────────────────────────────────────
-  # variable_dummy() numbers non-reference categories sequentially (cat1, cat2,
-  # …) sorted by value.  Reference levels are pre-loaded into dummy_refs so the
-  # most-frequent heuristic is never used for variables where the reference is
-  # substantively chosen.  On an apply run dummy_refs is already populated and
-  # the block below is skipped.
-
   vars_to_dummy_main <- c(
     # Binary chronic conditions (ref = 2 = No; output: <var>_cat1 = Yes)
     "CCC_031", "CCC_061", "CCC_071", "CCC_091",
@@ -81,6 +74,7 @@ run_transform_pipeline <- function(data, transformation_info = NULL) {
       GEN_07               = "1",   # Not at all stressful
       GEN_10               = "1",   # Very strong belonging
       HUPDPAD              = "1",   # No pain
+      rural                = "2",   # Urban
       SMKDSTY_cat5         = "5",   # Never smoked
       ALCDTTM              = "3",   # No drinks within the last 12 months
       SurveyCycle          = "3"    # 2017-18
@@ -92,11 +86,7 @@ run_transform_pipeline <- function(data, transformation_info = NULL) {
   transformation_info <- r$transformation_info
 
 
-  # ── Step 2: Center ─────────────────────────────────────────────────────────
-  # center_variables() subtracts the mean.  On a calibration run it estimates
-  # the mean from the data passed in (observed values, NA excluded).  On an
-  # apply run the stored mean is reused so all completed datasets are shifted
-  # by the same constant, keeping coefficients comparable across imputations.
+  #centering
 
   vars_to_center_continuous <- c(
     "DHH_AGE",   # → DHH_AGE_c; enters RCS in Step 3
@@ -161,9 +151,9 @@ run_transform_pipeline <- function(data, transformation_info = NULL) {
 
   # Age: 5-knot RCS on centered age → DHH_AGE_c_rcs1 (linear) through _rcs4
   if (is.null(transformation_info$knot_locations[["DHH_AGE_c"]])) {
-    age_knot_probs <- c(0.05, 0.35, 0.50, 0.65, 0.95)   # ← CONFIRM 5th knot
+    age_knot_probs <- c(0.05, 0.35, 0.50, 0.65, 0.95)
     transformation_info$knot_locations[["DHH_AGE_c"]] <-
-      quantile(data$DHH_AGE, probs = age_knot_probs, na.rm = TRUE)
+      quantile(data$DHH_AGE_c, probs = age_knot_probs, na.rm = TRUE)
   }
 
   r    <- create_rcs(
@@ -179,7 +169,7 @@ run_transform_pipeline <- function(data, transformation_info = NULL) {
   # Alcohol: 3-knot RCS on centered drinks/week → ALWDWKY_c_rcs1, _rcs2
   if (is.null(transformation_info$knot_locations[["ALWDWKY_c"]])) {
     transformation_info$knot_locations[["ALWDWKY_c"]] <-
-      quantile(data$ALWDWKY, probs = c(0.10, 0.50, 0.90), na.rm = TRUE)
+      quantile(data$ALWDWKY_c, probs = c(0.10, 0.50, 0.90), na.rm = TRUE)
   }
 
   r    <- create_rcs(
@@ -193,9 +183,7 @@ run_transform_pipeline <- function(data, transformation_info = NULL) {
   # Outputs: ALWDWKY_c_rcs1 (linear), ALWDWKY_c_rcs2 (nonlinear)
 
 
-  # ── Step 4: Interactions ───────────────────────────────────────────────────
-
-  # Main analysis interactions: products of centered (_c) variables.
+  #interactions
   interactions_main <- list(
     DHH_AGE_C_X_ALCDTTM_cat1_C       = c("DHH_AGE_c", "ALCDTTM_cat1_c"),
     DHH_AGE_C_X_ALCDTTM_cat2_C       = c("DHH_AGE_c", "ALCDTTM_cat2_c"),
@@ -216,10 +204,7 @@ run_transform_pipeline <- function(data, transformation_info = NULL) {
   data <- r$data
   transformation_info <- r$transformation_info
 
-  # Imputation-model-only interactions: raw (uncentered) age × raw comorbidity.
-  # These are included as passive predictors in MICE to satisfy congeniality;
-  # they are also present in the post-imputation completed datasets for
-  # consistency but are not entered into the outcome model.
+
   interactions_imputation <- list(
     age_X_BMI              = c("DHH_AGE", "bmi_adj"),
     age_X_arthritis        = c("DHH_AGE", "CCC_051"),
