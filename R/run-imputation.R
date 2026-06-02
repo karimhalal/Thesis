@@ -145,8 +145,7 @@ additional_predictors <- c(
   "SurveyCycle",
   "material_deprivation",
   "nelson_aalen_h",
-  "event",
-  "survt"
+  "event"
 )
 additional_predictors <- intersect(additional_predictors, colnames(data))
 
@@ -190,10 +189,22 @@ completed_list <- lapply(
     completed_i <- mice::complete(result$mice_result, action = i)
 
     # Start from the original data (all raw columns present) and overwrite
-    # each imputed variable with its completed value.
+    # each imputed variable with its completed value.  For columns that were
+    # originally haven_labelled, convert the factor (levels = numeric codes)
+    # back to haven_labelled so that label metadata is preserved downstream.
     full_i <- data
     for (v in intersect(colnames(completed_i), colnames(full_i))) {
-      full_i[[v]] <- completed_i[[v]]
+      orig_col <- data[[v]]
+      new_col  <- completed_i[[v]]
+      if (inherits(orig_col, "haven_labelled") && is.factor(new_col)) {
+        full_i[[v]] <- haven::labelled(
+          as.numeric(as.character(new_col)),
+          labels = attr(orig_col, "labels"),
+          label  = attr(orig_col, "label", exact = TRUE)
+        )
+      } else {
+        full_i[[v]] <- new_col
+      }
     }
 
     # Apply the full transformation cascade using the calibration constants.
