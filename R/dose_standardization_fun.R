@@ -1,5 +1,5 @@
 source(here::here("R", "oral_eq_fun.R"))
-source(here::here("R", "tanspatch_eq_fun.R"))
+source(here::here("R", "transpatch_eq_fun.R"))
 
 #' @title Dose Standardization Function
 #'
@@ -44,18 +44,8 @@ calculate_dose_standardization <- function(input_data) {
   data_transpatch <- input_data[is_transpatch, ]
   data_oral       <- input_data[!is_transpatch, ]
 
-  # Apply respective sub-functions (only if the slice is non-empty)
-  result_transpatch <- if (nrow(data_transpatch) > 0) {
-    calculate_transpatch_eq(.data = data_transpatch)
-  } else {
-    data_transpatch
-  }
-
-  result_oral <- if (nrow(data_oral) > 0) {
-    calculate_oral_eq(.data = data_oral)
-  } else {
-    data_oral
-  }
+  result_transpatch <- calculate_transpatch_eq(.data = data_transpatch)
+  result_oral       <- calculate_oral_eq(.data = data_oral)
 
   # Recombine and restore original row order, then drop helper column
   dplyr::bind_rows(result_transpatch, result_oral) %>%

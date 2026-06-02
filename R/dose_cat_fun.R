@@ -2,11 +2,11 @@
 #'
 #' @description Categorizes daily standardized dose equivalents into dose levels
 #' based on established guidelines for opioid and benzodiazepine prescribing.
-#' Relies on the \code{daily_dose} and \code{class} columns already present in
-#' the dataframe produced by \code{calculate_dose_standardization()}.
+#' Relies on the daily_dose and class columns already present in
+#' the dataframe produced by calculate_dose_standardization().
 #' No DIN list lookup or join is required.
 #'
-#' @param input_data A dataframe containing at minimum \code{daily_dose} (numeric)
+#' @param input_data A dataframe containing at minimum daily_dose (numeric)
 #' and \code{class} (character: "Opioid" or "BZD") columns, as produced by
 #' \code{calculate_dose_standardization()}.
 #'
@@ -18,9 +18,9 @@
 #'   - 3: High dose (daily_dose >= 100)
 #'
 #'   **Categories: Benzodiazepines (DME)**
-#'   - 1: Low dose (daily_dose <= 5)
-#'   - 2: Moderate dose (5 < daily_dose < 15)
-#'   - 3: High dose (daily_dose >= 15)
+#'   - 1: Low dose (daily_dose <= 20)
+#'   - 2: Moderate dose (20> daily_dose < 40)
+#'   - 3: High dose (daily_dose >= 40)
 #'
 #'   - \code{haven::tagged_na("b")}: Missing or invalid dose
 #'   - \code{haven::tagged_na("d")}: Class could not be determined
@@ -58,16 +58,16 @@ dose_cat_fun <- function(input_data) {
 
     # OPIOID CATEGORIES (MEQ)
     tolower(drug_class) == "opioid" & daily_dose < 50                       ~ 1,
-    tolower(drug_class) == "opioid" & daily_dose >= 50 & daily_dose < 100  ~ 2,
-    tolower(drug_class) == "opioid" & daily_dose >= 100                     ~ 3,
+    #tolower(drug_class) == "opioid" & daily_dose >= 50 & daily_dose < 100  ~ 2,
+    tolower(drug_class) == "opioid" & daily_dose >= 100                     ~ 2,
 
     # BZD CATEGORIES (DME)
     tolower(drug_class) == "bzd" & daily_dose <= 20                         ~ 1,
-    tolower(drug_class) == "bzd" & daily_dose > 20  & daily_dose <= 40       ~ 2,
-    tolower(drug_class) == "bzd" & daily_dose > 40                         ~ 3,
+    #tolower(drug_class) == "bzd" & daily_dose > 20  & daily_dose <= 40       ~ 2,
+    tolower(drug_class) == "bzd" & daily_dose > 40                         ~ 2,
 
-    #Stimulant categories: methylphenidate equivalents
-    tolower(drug_class)=="stimulant" & grepl("amphetamine|dextroamp", Active.Ing) 
+    #Stimulant categories: based
+   # tolower(drug_class)=="stimulant" & grepl("amphetamine|dextroamp", Active.Ing) 
     #Stimulant categories: amphetamine equivalents
     
     # Default to missing
