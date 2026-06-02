@@ -55,9 +55,7 @@ run_transform_pipeline <- function(data, transformation_info = NULL) {
     # 3-category: drinker type (ref = 1 = Regular drinker)
     "ALCDTTM",
     # 3-category: survey cycle (ref = 3 = 2017-18)
-    "SurveyCycle",
-
-    "PACDEE"
+    "SurveyCycle"
   )
 
   # Pre-load substantively chosen reference levels; skipped on apply runs
@@ -89,9 +87,11 @@ run_transform_pipeline <- function(data, transformation_info = NULL) {
   #centering
 
   vars_to_center_continuous <- c(
-    "DHH_AGE",   # → DHH_AGE_c; enters RCS in Step 3
-    "bmi_adj",   # → bmi_adj_c; age × BMI interaction
-    "ALWDWKY"    # → ALWDWKY_c; age × drinks-last-week interaction and RCS
+    "DHH_AGE",          # → DHH_AGE_c; enters RCS in Step 3
+    "bmi_adj",          # → bmi_adj_c; age × BMI interaction
+    "ALWDWKY",          # → ALWDWKY_c; age × drinks-last-week interaction and RCS
+    "opioid_daily_dose", # → opioid_daily_dose_c; 3-knot RCS in Step 3
+    "bzd_daily_dose"    # → bzd_daily_dose_c; 3-knot RCS in Step 3
   )
 
   vars_to_center_step1 <- c(
@@ -181,6 +181,32 @@ run_transform_pipeline <- function(data, transformation_info = NULL) {
   data <- r$data
   transformation_info <- r$transformation_info
   # Outputs: ALWDWKY_c_rcs1 (linear), ALWDWKY_c_rcs2 (nonlinear)
+
+  # Opioid daily dose: 3-knot RCS → opioid_daily_dose_c_rcs1, _rcs2
+  if (!is.null(data$opioid_daily_dose_c)) {
+    if (is.null(transformation_info$knot_locations[["opioid_daily_dose_c"]])) {
+      transformation_info$knot_locations[["opioid_daily_dose_c"]] <-
+        quantile(data$opioid_daily_dose_c, probs = c(0.10, 0.50, 0.90), na.rm = TRUE)
+    }
+    r    <- create_rcs(data, vars = "opioid_daily_dose_c",
+                       transformation_info = transformation_info,
+                       rcs_cols = list(opioid_daily_dose_c = 1:2))
+    data <- r$data
+    transformation_info <- r$transformation_info
+  }
+
+  # BZD daily dose: 3-knot RCS → bzd_daily_dose_c_rcs1, _rcs2
+  if (!is.null(data$bzd_daily_dose_c)) {
+    if (is.null(transformation_info$knot_locations[["bzd_daily_dose_c"]])) {
+      transformation_info$knot_locations[["bzd_daily_dose_c"]] <-
+        quantile(data$bzd_daily_dose_c, probs = c(0.10, 0.50, 0.90), na.rm = TRUE)
+    }
+    r    <- create_rcs(data, vars = "bzd_daily_dose_c",
+                       transformation_info = transformation_info,
+                       rcs_cols = list(bzd_daily_dose_c = 1:2))
+    data <- r$data
+    transformation_info <- r$transformation_info
+  }
 
 
   #interactions

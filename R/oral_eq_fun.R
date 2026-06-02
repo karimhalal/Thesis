@@ -157,10 +157,7 @@ calculate_oral_eq <- function(.data = NULL, din = NULL, dayssupl = NULL, quantit
         is.na(conversion_factor) ~ haven::tagged_na("b"),
 
         # Calculate total meq: (quantity × dose_num × Conversion Factor)
-        TRUE ~ (quantity * dose_num * conversion_factor),
-
-        # Default to missing
-        .default = haven::tagged_na("b")
+        TRUE ~ (quantity * dose_num * conversion_factor)
       ),
 
       daily_dose = dplyr::case_when(
@@ -181,10 +178,7 @@ calculate_oral_eq <- function(.data = NULL, din = NULL, dayssupl = NULL, quantit
         is.na(conversion_factor) ~ haven::tagged_na("b"),
 
         # Calculate daily meq: (quantity × dose_num × Conversion Factor) / dayssupl
-        TRUE ~ (quantity * dose_num * conversion_factor) / dayssupl,
-
-        # Default to missing
-        .default = haven::tagged_na("b")
+        TRUE ~ (quantity * dose_num * conversion_factor) / dayssupl
       )
     )
 

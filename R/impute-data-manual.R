@@ -24,7 +24,11 @@ add_nelson_aalen_h <- function(
   fit <- survival::survfit(survival::Surv(data[[time_var]], event_ind) ~ 1, type = "fh")
   # Right-continuous step function: H(t) = 0 before first event, then jumps
   H_fn <- stepfun(fit$time, c(0, fit$cumhaz))
-  data$nelson_aalen_h <- H_fn(data[[time_var]])
+  H <- H_fn(data[[time_var]])
+  # Log-transform: log H(t) is more normally distributed, less collinear with
+  # age, and is what's linear in standard log-hazard regression models.
+  # Small offset guards against log(0) for observations before the first event.
+  data$nelson_aalen_h <- log(H + 1e-8)
   data
 }
 
@@ -248,23 +252,7 @@ impute_data_manual <- function(
 }
 
 
-# ── Data preparation ──────────────────────────────────────────────────────────
-
-#' Coerce all columns to canonical R types for MICE
-#'
-#' Converts every column in \code{data} according to its current class:
-#' \itemize{
-#'   \item \code{haven_labelled} → \code{factor} (levels ordered by numeric
-#'     code ascending, via \code{haven::as_factor()}); promoted to
-#'     \code{ordered} if the column name is in \code{ordered_factor_vars}.
-#'   \item \code{character} → \code{factor} (levels alphabetically sorted);
-#'     promoted to \code{ordered} if in \code{ordered_factor_vars}.
-#'   \item Unordered \code{factor} in \code{ordered_factor_vars} → \code{ordered}.
-#'   \item Plain \code{double} → \code{numeric} (strips any haven attributes).
-#'   \item Plain \code{integer} → \code{integer} (strips any haven attributes).
-#'   \item Everything else is left unchanged.
-#' }
-#'
+#Data prep
 #' @param data data.frame
 #' @param ordered_factor_vars character vector of column names to promote to
 #'   ordered factor
@@ -288,7 +276,7 @@ impute_data_manual <- function(
             label = attr(x, "label", exact = TRUE)
           )
         }
-        f <- haven::as_factor(x, levels = "labels")
+        f <- haven::as_factor(x, levels = "values")
         data[[col]] <- if (col %in% ordered_factor_vars)
           factor(f, levels = levels(f), ordered = TRUE) else f
       } else {
