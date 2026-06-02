@@ -172,7 +172,7 @@ resp_condition_fun1 <-
             if_else2(
               ((DHH_AGE > 0 & DHH_AGE >= 35) &
                  (CCC_091 == 2 & CCC_031 == 2)), 3,
-              if_else2((CCC_091 == "NA(a)" & CCC_031 == "NA(a)"), "NA(a)",
+              if_else2((is.na(CCC_091) & is.na(CCC_031)), "NA(a)",
                        "NA(b)")
             )
           )
@@ -457,8 +457,16 @@ bind_rows_keep_labels<-function(df1, df2, prefer=c("df1", "df2")){
     if(!is.null(v1) && length(v1)>0){
       col<-out[[nm]]
       if(is.numeric(col)||is.integer(col)){
+        # haven::new_labelled requires label values to be the same type as x
+        v1_coerced <- if (is.double(col)) {
+          structure(as.double(v1), names = names(v1))
+        } else if (is.integer(col)) {
+          structure(as.integer(v1), names = names(v1))
+        } else {
+          v1
+        }
         out[[nm]] <- tryCatch(
-          labelled(col, v1, label = combined_var_labels[[nm]]),
+          labelled(col, v1_coerced, label = combined_var_labels[[nm]]),
           error = function(e) {
             warning("Could not apply value labels for column '", nm, "': ", conditionMessage(e))
             col
@@ -471,6 +479,97 @@ bind_rows_keep_labels<-function(df1, df2, prefer=c("df1", "df2")){
   out
 
 }
+
+#' @title Collapse labelled-double categories
+#'
+#' @description Recodes a \code{haven_labelled} variable by merging user-specified
+#'   category groups into single categories. Both the underlying numeric values
+#'   and the value-label attribute are updated so that the variable remains a
+#'   labelled double throughout, preserving compatibility with the downstream
+#'   pipeline.
+#'
+#'   Each group is defined by a named argument whose \strong{name} becomes the
+#'   new category label and whose \strong{value} is a character vector of the
+#'   existing labels to fold into it.  The lowest numeric code among the old
+#'   categories is used as the representative code for the new group.
+#'   Categories not mentioned in \code{...} are left unchanged.
+#'
+#' @param data  A data frame containing the target variable.
+#' @param var   Character scalar. Name of the \code{haven_labelled} column to
+#'   recode.
+#' @param ...   Named arguments of the form
+#'   \code{new_label = c("old_label_1", "old_label_2", ...)}.
+#'
+#' @return \code{data} with the recoded column.  The column class remains
+#'   \code{haven_labelled}; the variable-level label (\code{var_label}) is
+#'   preserved.
+#'
+#' @examples
+#' \dontrun{
+#' data <- collapse_categories(
+#'   data = cchs_clean,
+#'   var  = "EDUDR04",
+#'   "< Secondary"    = c("Less than secondary school", "Secondary school"),
+#'   ">= Post-second" = c("Some post-secondary", "Post-secondary graduation")
+#' )
+#' }
+#'
+#' @export
+collapse_categories <- function(data, var, ...) {
+
+  stopifnot(
+    is.data.frame(data),
+    is.character(var), length(var) == 1, var %in% names(data)
+  )
+
+  groups <- list(...)
+
+  if (length(groups) == 0) return(data)
+
+  x        <- data[[var]]
+  labs     <- labelled::val_labels(x)    # named numeric: names = labels, values = codes
+  var_lbl  <- labelled::var_label(x)
+  x_vals   <- as.double(x)
+
+  if (is.null(labs) || length(labs) == 0) {
+    stop(sprintf("Variable '%s' has no value labels — cannot collapse categories.", var))
+  }
+
+  unnamed <- names(groups)[!nzchar(names(groups))]
+  if (length(unnamed) > 0) {
+    stop("All groups passed via '...' must be named (the name becomes the new category label).")
+  }
+
+  for (new_label in names(groups)) {
+
+    old_labels <- groups[[new_label]]
+
+    missing_labels <- setdiff(old_labels, names(labs))
+    if (length(missing_labels) > 0) {
+      warning(sprintf(
+        "collapse_categories: label(s) not found in '%s' and will be skipped: %s",
+        var, paste(missing_labels, collapse = ", ")
+      ))
+      old_labels <- intersect(old_labels, names(labs))
+    }
+
+    if (length(old_labels) == 0) next
+
+    old_codes <- unname(labs[old_labels])
+    rep_code  <- min(old_codes)
+
+    x_vals[x_vals %in% old_codes] <- rep_code
+
+    labs <- labs[!names(labs) %in% old_labels]
+    labs <- c(labs, stats::setNames(rep_code, new_label))
+  }
+
+  labs <- labs[order(labs)]
+
+  data[[var]] <- labelled::labelled(x_vals, labels = labs, label = var_lbl)
+  data
+}
+
 
 calculate_energy_expenditure_18plus <-
   function(PAA_045, PAA_050, PAA_075, PAA_080, PAADVDYS, PAADVVIG) {

@@ -96,6 +96,7 @@ plot_cif <- function(
     group              = NULL,
     event_of_interest  = "1",
     event_labels       = NULL,
+    group_labels       = NULL,
     type               = c("panels", "log", "stacked"),
     y_limits           = NULL,
     ci                 = TRUE,
@@ -110,7 +111,8 @@ plot_cif <- function(
     else if (is.factor(col)) col
     else as.character(col)
   } else NULL
-  cif_obj <- cmprsk::cuminc(ftime = data[[ftime]], fstatus = data[[fstatus]],
+  cif_obj <- cmprsk::cuminc(ftime = haven::zap_labels(data[[ftime]]),
+                             fstatus = haven::zap_labels(data[[fstatus]]),
                              group = grp_vec)
 
   elem_names <- names(cif_obj)[names(cif_obj) != "Tests"]
@@ -134,6 +136,10 @@ plot_cif <- function(
     event_labels <- setNames(paste("Event", event_codes), event_codes)
   }
   cif_df$event_label <- dplyr::recode(cif_df$event, !!!event_labels)
+
+  if (!is.null(group_labels)) {
+    cif_df$group <- dplyr::recode(cif_df$group, !!!group_labels)
+  }
 
   aes_group <- if (!is.null(group)) "group" else NULL
 
