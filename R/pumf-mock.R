@@ -123,7 +123,8 @@
 #'            INCDRCA (incdvsca post 2015) 10 category income deciles, coded the same in pumf
 #'            INCDVPR (incdvspr post 2015) 10 category income deciles provincial coded the same in pumf
 #'            INCDVRRS (incdvsrs post 2015) 10 cateogry income deciles health region level. coded the same in the pumf
-#' 
+#'            WTS_M (same for all cycles) survey sampling weight (master weight). Extracted directly from the PUMF and used as-is.
+#'
 #' NA tracking for variables
 #'            for continous variables: 996,997,998,or 999 where 996=not applicable and 997,998,999=refusal/DK/missing
 #'            for categorical variables: depends on the number of categories
@@ -335,6 +336,8 @@ pumf_mock <- function(data_2013, data_2015, data_2017,
 
       CMH_01K  = .lbl_s(s[["CMH_01K"]],           "Consulted mental health professional in past year"),
 
+      WTS_M    = .weight(as.double(s[["WTS_M"]]), "Survey sampling weight (master)"),
+
 
       rural                = labelled(.inj_na_s(sample(1:2, n, TRUE, c(0.17, 0.83))),
                                      labels = c(Rural = 1L, Urban = 2L),
@@ -434,6 +437,8 @@ pumf_mock <- function(data_2013, data_2015, data_2017,
 
       cmh_005  = .lbl_s(if (is2017) rep(996L, n) else as.integer(s[["CMH_005"]]),
                    "Consulted mental health professional in past year"),
+
+      WTS_M    = .weight(as.double(s[["WTS_M"]]), "Survey sampling weight (master)"),
 
 
       rural                = labelled(.inj_na_s(sample(1:2, n, TRUE, c(0.17, 0.83))),
