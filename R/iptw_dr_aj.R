@@ -95,26 +95,28 @@ frm_ps <- as.formula(
 
 # Doubly-robust outcome model formulas (functional forms + exposure)
 frm_fdrug_ff_e1 <- .mf(
-  "Surv(time_to_event, event == 1)",
+  "Surv(time_to_event, event1 == 1)",
   c("factor(first_drug_class)", .fdrug_adj_ff)
 )
 
-# Competing event model: exposure excluded; per the DAGs, prescription
-# initiation has no direct causal path to other-cause mortality.
-# For fully doubly-robust event-2 protection, add "factor(first_drug_class)".
-frm_fdrug_ff_e2 <- .mf("Surv(time_to_event, event == 2)", .fdrug_adj_ff)
+# Competing event model: exposure included for full double-robustness protection.
+# The DAG encodes no direct causal path from prescription initiation to
+# other-cause mortality, but including the exposure guards against model
+# misspecification in the nuisance model.
+frm_fdrug_ff_e2 <- .mf("Surv(time_to_event, event1 == 2)",
+                        c("factor(first_drug_class)", .fdrug_adj_ff))
 
 
 # 2.  STABILISED ATT WEIGHTS FROM MULTINOMIAL PS
 #
 # For each pairwise comparison a vs 0 (a ∈ {1, 2}):
 #
-#   Treated (A = a): sw = 1
-#   Control (A = 0): sw = [P(A=a|L) / P(A=0|L)] × [p̂₀ / p̂ₐ]
+#   Treated (A = a): w = 1
+#   Control (A = 0): w = P(A=a|L) / P(A=0|L)
 #
-# where p̂ₐ = n_a / (n_a + n_0) in the restricted subsample {A ∈ {0, a}}.
-# The stabilisation term (p̂₀ / p̂ₐ) normalises control weights so mean ≈ 1.
-# Weights are trimmed at `trim_quantile` to limit extreme values.
+# These are the propensity odds and are the correct ATT weights. No stabilisation
+# or trimming is applied: for ATT the weights are already bounded by the formula
+# (controls with low treatment propensity receive small weights).
 #
 # Returns: weights (named list of full-length vectors, NA for excluded obs),
 #          ps_fit, ps_mat, ps_check (per-level diagnostics).
@@ -161,8 +163,7 @@ frm_fdrug_ff_e2 <- .mf("Surv(time_to_event, event == 2)", .fdrug_adj_ff)
                              ps_formula     = frm_ps,
                              exposure_var   = "first_drug_class",
                              treated_levels = c("1", "2"),
-                             ref_level      = "0",
-                             trim_quantile  = 0.99) {
+                             ref_level      = "0") {
 
   A  <- as.character(data[[exposure_var]])
   n  <- nrow(data)
@@ -197,21 +198,15 @@ if (is.null(dim(ps_mat))) {
 
     n_a <- sum(A_sub == a)
     n_0 <- sum(A_sub == ref_level)
-    p_a <- n_a / (n_a + n_0)
-    p_0 <- n_0 / (n_a + n_0)
 
-    w_sub  <- ifelse(A_sub == a, 1.0, (ps_a_sub / ps_0_sub) * (p_0 / p_a))
-    ctrl_q <- quantile(w_sub[A_sub == ref_level], trim_quantile, na.rm = TRUE)
-    w_sub  <- pmin(w_sub, ctrl_q)
+    w_sub <- ifelse(A_sub == a, 1.0, ps_a_sub / ps_0_sub)###CONFIRM THE CONVERSION HERE
 
     ps_check[[a]] <- list(
       n_treated           = n_a,
       n_control           = n_0,
       ctrl_weight_summary = summary(w_sub[A_sub == ref_level]),
       ctrl_ESS            = sum(w_sub[A_sub == ref_level])^2 /
-                              sum(w_sub[A_sub == ref_level]^2),
-      trim_cutpoint       = ctrl_q,
-      trim_quantile       = trim_quantile
+                              sum(w_sub[A_sub == ref_level]^2)
     )
 
     w_full          <- rep(NA_real_, n)
@@ -233,6 +228,7 @@ if (is.null(dim(ps_mat))) {
 #
 # for x ∈ {a, 0}. The difference/ratio of these two quantities is the ATT.
 
+#extract baseline hazards at event times
 .get_H0_at <- function(bh, query_times) {
   idx <- findInterval(query_times, bh$time)
   ifelse(idx == 0L, 0.0, bh$hazard[idx])
@@ -247,13 +243,16 @@ if (is.null(dim(ps_mat))) {
   d_int <- data_std
   d_int[[exposure_var]] <- factor(intervention_level, levels = all_levels)
 
-  lp1   <- predict(fit1, newdata = d_int,    type = "lp")
-  lp2   <- predict(fit2, newdata = data_std, type = "lp")   # event2: no exposure term
+  #extract and exponentiate linear predictors
+  lp1   <- predict(fit1, newdata = d_int, type = "lp")
+  lp2   <- predict(fit2, newdata = d_int, type = "lp")
   e_lp1 <- exp(lp1)
   e_lp2 <- exp(lp2)
 
+  #return centered baseline hazards
   bh1 <- basehaz(fit1, centered = TRUE)
   bh2 <- basehaz(fit2, centered = TRUE)
+
 
   event_times <- sort(unique(c(
     bh1$time[bh1$time <= time_horizon],
@@ -317,12 +316,12 @@ iptw_dr_aj_one_dataset <- function(data,
                                     ref_level       = "0",
                                     all_levels      = c("0", "1", "2"),
                                     time_horizon    = 10,
-                                    trim_quantile   = 0.99,
                                     n_boot          = 500,
                                     seed            = 42L,
+                                    ph_diagnostics  = FALSE,
                                     covariate_cols  = .fdrug_ps_terms) {
 
-  stopifnot(all(c("time_to_event", "event", exposure_var) %in% names(data)))
+  stopifnot(all(c("time_to_event", "event1", exposure_var) %in% names(data)))
 
   # Normalise exposure to bare numeric-code characters ("0","1","2").
   # haven_labelled: strip labels then coerce; factor: use underlying integer if
@@ -346,17 +345,39 @@ iptw_dr_aj_one_dataset <- function(data,
          ". Observed values: ", paste(sort(obs_levels), collapse = ", "),
          ". Check storage type of '", exposure_var, "'.")
 
-  estimate_fn <- function(dat, return_wt = FALSE) {
+  # Crude formulas: exposure term only, no covariate adjustment
+  frm_e1_crude <- as.formula(
+    paste0("Surv(time_to_event, event1 == 1) ~ factor(", exposure_var, ")")
+  )
+  frm_e2_crude <- as.formula(
+    paste0("Surv(time_to_event, event1 == 2) ~ factor(", exposure_var, ")")
+  )
+
+  estimate_fn <- function(dat, return_wt = FALSE,
+                          mode = c("iptw_dr", "adjusted_unweighted", "crude")) {
+    mode <- match.arg(mode)
     dat[[exposure_var]] <- as.character(dat[[exposure_var]])
 
-    wt_out <- .compute_att_sw(
-      data           = dat,
-      ps_formula     = ps_formula,
-      exposure_var   = exposure_var,
-      treated_levels = treated_levels,
-      ref_level      = ref_level,
-      trim_quantile  = trim_quantile
-    )
+    if (mode == "iptw_dr") {
+      wt_out <- .compute_att_sw(
+        data           = dat,
+        ps_formula     = ps_formula,
+        exposure_var   = exposure_var,
+        treated_levels = treated_levels,
+        ref_level      = ref_level
+      )
+    } else {
+      wt_out <- list(
+        weights = setNames(
+          lapply(treated_levels, function(a) rep(1.0, nrow(dat))),
+          treated_levels
+        ),
+        ps_fit = NULL, ps_mat = NULL, ps_check = NULL
+      )
+    }
+
+    f1 <- if (mode == "crude") frm_e1_crude else formula_e1
+    f2 <- if (mode == "crude") frm_e2_crude else formula_e2
 
     results_per_level <- setNames(vector("list", length(treated_levels)),
                                   treated_levels)
@@ -371,21 +392,32 @@ iptw_dr_aj_one_dataset <- function(data,
         stop("No rows match exposure levels '", a, "' or '", ref_level,
              "' — check .norm_exposure() output for '", exposure_var, "'.")
 
-      dat_comp[[exposure_var]] <- factor(dat_comp[[exposure_var]], levels = all_levels)
-      dat_comp[[".w"]]         <- w_comp   # store in data so coxph model.frame finds it
+      # Drop the empty exposure level (the third class is absent from this
+      # pairwise subsample) so coxph does not emit an aliased NA coefficient —
+      # cox.zph()/Schoenfeld residuals reject aliased terms. Estimates are
+      # unchanged: the dropped dummy column is all-zero and contributes nothing.
+      dat_comp[[exposure_var]] <- droplevels(factor(dat_comp[[exposure_var]], levels = all_levels))
+      dat_comp[[".w"]]         <- w_comp
 
-      .diagnose_coxph_data(formula_e1, dat_comp,
-                            paste0("event1 comparison=", a, " vs ", ref_level))
-      .diagnose_coxph_data(formula_e2, dat_comp,
-                            paste0("event2 comparison=", a, " vs ", ref_level))
+      # Retain design/response matrices only on the iptw_dr point-estimate fits
+      # when diagnostics are requested, so cox.zph() and the residual plots can
+      # reuse these exact fits. Bootstrap and other modes stay lean (x/y FALSE).
+      keep_xy <- isTRUE(return_wt) && mode == "iptw_dr" && isTRUE(ph_diagnostics)
+
+      if (mode != "crude") {
+        .diagnose_coxph_data(f1, dat_comp,
+                              paste0("event1 comparison=", a, " vs ", ref_level))
+        .diagnose_coxph_data(f2, dat_comp,
+                              paste0("event2 comparison=", a, " vs ", ref_level))
+      }
 
       fit1 <- do.call(coxph, list(
-        formula = formula_e1, data = dat_comp,
-        weights = dat_comp[[".w"]], ties = "efron", x = FALSE, y = FALSE
+        formula = f1, data = dat_comp,
+        weights = dat_comp[[".w"]], ties = "efron", x = keep_xy, y = keep_xy
       ))
       fit2 <- do.call(coxph, list(
-        formula = formula_e2, data = dat_comp,
-        weights = dat_comp[[".w"]], ties = "efron", x = FALSE, y = FALSE
+        formula = f2, data = dat_comp,
+        weights = dat_comp[[".w"]], ties = "efron", x = keep_xy, y = keep_xy
       ))
 
       results_per_level[[a]] <- compute_att_cif_dr(
@@ -398,16 +430,61 @@ iptw_dr_aj_one_dataset <- function(data,
         all_levels    = all_levels,
         time_horizon  = time_horizon
       )
+      results_per_level[[a]]$cox_fit1 <- fit1
+      results_per_level[[a]]$cox_fit2 <- fit2
+
+      # Retain the weighted pairwise subsample (incl. .w) only on the iptw_dr
+      # point-estimate path when PH diagnostics are requested — cox_assumptions()
+      # needs it for the log-log plot grouped by exposure.
+      if (keep_xy)
+        results_per_level[[a]]$dat_comp <- dat_comp
     }
 
     if (return_wt) list(estimates = results_per_level, wt_out = wt_out)
     else           results_per_level
   }
 
-  message("    Computing IPTW-DR-AJ point estimates...")
-  pe_full <- estimate_fn(data, return_wt = TRUE)
-  pe      <- pe_full$estimates
-  wt_out  <- pe_full$wt_out
+  message("    Computing point estimates (IPTW-DR-AJ)...")
+  pe_full  <- estimate_fn(data, return_wt = TRUE, mode = "iptw_dr")
+  pe_iptw  <- pe_full$estimates
+  wt_out   <- pe_full$wt_out
+
+  # Cox PH assumption diagnostics on the iptw_dr point-estimate models (no
+  # refit — these are the exact weighted fits used for the point estimates,
+  # retained with x/y = TRUE above). Both cause-specific models are checked for
+  # each treated comparison: cause 1 = NMS death, cause 2 = other-cause death.
+  ph_diag <- NULL
+  if (ph_diagnostics) {
+    message("    Cox PH assumption diagnostics (iptw_dr)...")
+    ph_diag <- setNames(vector("list", length(treated_levels)), treated_levels)
+    for (a in treated_levels) {
+      dat_d <- pe_iptw[[a]]$dat_comp
+
+      z1 <- cox_assumptions(
+        pe_iptw[[a]]$cox_fit1, dat_d, exposure_var = exposure_var,
+        label    = paste0("IPTW-DR cause 1 (NMS death) | ", a, " vs ", ref_level),
+        time_var = "time_to_event", event_var = "event1", event_code = 1L
+      )
+      z2 <- cox_assumptions(
+        pe_iptw[[a]]$cox_fit2, dat_d, exposure_var = exposure_var,
+        label    = paste0("IPTW-DR cause 2 (other death) | ", a, " vs ", ref_level),
+        time_var = "time_to_event", event_var = "event1", event_code = 2L
+      )
+      ph_diag[[a]] <- list(cause1 = z1$ph, cause2 = z2$ph)
+    }
+  }
+
+  message("    Computing point estimates (adjusted, unweighted)...")
+  pe_adj   <- estimate_fn(data, mode = "adjusted_unweighted")
+
+  message("    Computing point estimates (crude)...")
+  pe_crude <- estimate_fn(data, mode = "crude")
+
+  point_estimates <- list(
+    iptw_dr             = pe_iptw,
+    adjusted_unweighted = pe_adj,
+    crude               = pe_crude
+  )
 
   plain_cols <- intersect(
     covariate_cols[!grepl(":", covariate_cols)],
@@ -463,17 +540,15 @@ iptw_dr_aj_one_dataset <- function(data,
     )
   }
 
-  message("    Bootstrapping (", n_boot, " reps)...")
+  message("    Bootstrapping (", n_boot, " reps, 3 estimators)...")
   n <- nrow(data)
   set.seed(seed)
   boot_seeds <- sample.int(.Machine$integer.max, n_boot)
 
-  run_one_boot <- function(b) {
-    set.seed(boot_seeds[b])
-    boot_dat <- data[sample(n, replace = TRUE), ]
+  .safe_boot_mode <- function(dat, mode) {
     tryCatch(
       {
-        res <- estimate_fn(boot_dat)
+        res <- estimate_fn(dat, mode = mode)
         list(
           att_rd     = vapply(treated_levels,
                               function(a) res[[a]]$att_rd,     numeric(1L)),
@@ -481,11 +556,20 @@ iptw_dr_aj_one_dataset <- function(data,
                               function(a) res[[a]]$log_att_rr, numeric(1L))
         )
       },
-      error = function(e)
-        list(
-          att_rd     = setNames(rep(NA_real_, length(treated_levels)), treated_levels),
-          log_att_rr = setNames(rep(NA_real_, length(treated_levels)), treated_levels)
-        )
+      error = function(e) list(
+        att_rd     = setNames(rep(NA_real_, length(treated_levels)), treated_levels),
+        log_att_rr = setNames(rep(NA_real_, length(treated_levels)), treated_levels)
+      )
+    )
+  }
+
+  run_one_boot <- function(b) {
+    set.seed(boot_seeds[b])
+    boot_dat <- data[sample(n, replace = TRUE), ]
+    list(
+      iptw_dr             = .safe_boot_mode(boot_dat, "iptw_dr"),
+      adjusted_unweighted = .safe_boot_mode(boot_dat, "adjusted_unweighted"),
+      crude               = .safe_boot_mode(boot_dat, "crude")
     )
   }
 
@@ -494,20 +578,40 @@ iptw_dr_aj_one_dataset <- function(data,
     run_one_boot(b)
   })
 
-  boot_rd_mat  <- do.call(cbind, lapply(boot_list, `[[`, "att_rd"))
-  boot_rr_mat  <- do.call(cbind, lapply(boot_list, `[[`, "log_att_rr"))
-  rownames(boot_rd_mat) <- rownames(boot_rr_mat) <- treated_levels
+  .extract_boot_var <- function(meth) {
+    rd_mat <- do.call(cbind, lapply(boot_list, function(b) b[[meth]]$att_rd))
+    rr_mat <- do.call(cbind, lapply(boot_list, function(b) b[[meth]]$log_att_rr))
+    rownames(rd_mat) <- rownames(rr_mat) <- treated_levels
+    list(
+      var_rd     = apply(rd_mat, 1L, var, na.rm = TRUE),
+      var_log_rr = apply(rr_mat, 1L, var, na.rm = TRUE),
+      n_failed   = sum(is.na(rd_mat[1L, ]))
+    )
+  }
 
-  n_failed <- sum(is.na(boot_rd_mat[1L, ]))
+  bv_iptw  <- .extract_boot_var("iptw_dr")
+  bv_adj   <- .extract_boot_var("adjusted_unweighted")
+  bv_crude <- .extract_boot_var("crude")
+
+  n_failed <- bv_iptw$n_failed
   if (n_failed > 0L)
-    warning(n_failed, " bootstrap replicates failed and were discarded.")
+    warning(n_failed, " IPTW-DR bootstrap replicates failed and were discarded.")
 
   list(
-    point_estimates  = pe,
-    boot_var_rd      = apply(boot_rd_mat, 1L, var, na.rm = TRUE),
-    boot_var_log_rr  = apply(boot_rr_mat, 1L, var, na.rm = TRUE),
-    n_boot           = n_boot - n_failed,
-    diag             = diag
+    point_estimates = point_estimates,
+    boot_var_rd = list(
+      iptw_dr             = bv_iptw$var_rd,
+      adjusted_unweighted = bv_adj$var_rd,
+      crude               = bv_crude$var_rd
+    ),
+    boot_var_log_rr = list(
+      iptw_dr             = bv_iptw$var_log_rr,
+      adjusted_unweighted = bv_adj$var_log_rr,
+      crude               = bv_crude$var_log_rr
+    ),
+    n_boot = n_boot - n_failed,
+    diag    = diag,
+    ph_diag = ph_diag
   )
 }
 
@@ -536,35 +640,40 @@ pool_iptw_att_rubin <- function(results_list,
     list(est = Q_bar, se = sqrt(T_var), t_crit = t_crit, fmi = lambda, df = df_br)
   }
 
-  map_dfr(treated_levels, function(a) {
-    rd_vec  <- vapply(results_list, function(r) r$point_estimates[[a]]$att_rd,     numeric(1L))
-    lrr_vec <- vapply(results_list, function(r) r$point_estimates[[a]]$log_att_rr, numeric(1L))
-    var_rd  <- vapply(results_list, function(r) r$boot_var_rd[[a]],                numeric(1L))
-    var_lrr <- vapply(results_list, function(r) r$boot_var_log_rr[[a]],            numeric(1L))
+  methods <- c("iptw_dr", "adjusted_unweighted", "crude")
 
-    cif_a_vec   <- vapply(results_list, function(r) r$point_estimates[[a]]$cif_treated, numeric(1L))
-    cif_ref_vec <- vapply(results_list, function(r) r$point_estimates[[a]]$cif_ref,     numeric(1L))
+  map_dfr(methods, function(meth) {
+    map_dfr(treated_levels, function(a) {
+      rd_vec  <- vapply(results_list, function(r) r$point_estimates[[meth]][[a]]$att_rd,     numeric(1L))
+      lrr_vec <- vapply(results_list, function(r) r$point_estimates[[meth]][[a]]$log_att_rr, numeric(1L))
+      var_rd  <- vapply(results_list, function(r) r$boot_var_rd[[meth]][[a]],                numeric(1L))
+      var_lrr <- vapply(results_list, function(r) r$boot_var_log_rr[[meth]][[a]],            numeric(1L))
 
-    rd_pool <- .rubin(rd_vec,  var_rd)
-    rr_pool <- .rubin(lrr_vec, var_lrr)
+      cif_a_vec   <- vapply(results_list, function(r) r$point_estimates[[meth]][[a]]$cif_treated, numeric(1L))
+      cif_ref_vec <- vapply(results_list, function(r) r$point_estimates[[meth]][[a]]$cif_ref,     numeric(1L))
 
-    tibble(
-      exposure_level  = a,
-      exposure_label  = exposure_labels[a],
-      cif_treated     = mean(cif_a_vec),
-      cif_ref         = mean(cif_ref_vec),
-      att_rd          = rd_pool$est,
-      se_att_rd       = rd_pool$se,
-      att_rd_lower_95 = rd_pool$est - rd_pool$t_crit * rd_pool$se,
-      att_rd_upper_95 = rd_pool$est + rd_pool$t_crit * rd_pool$se,
-      att_rr          = exp(rr_pool$est),
-      att_rr_lower_95 = exp(rr_pool$est - rr_pool$t_crit * rr_pool$se),
-      att_rr_upper_95 = exp(rr_pool$est + rr_pool$t_crit * rr_pool$se),
-      fmi_rd          = rd_pool$fmi,
-      df_barnard      = rd_pool$df,
-      m_imputations   = m,
-      time_horizon    = time_horizon
-    )
+      rd_pool <- .rubin(rd_vec,  var_rd)
+      rr_pool <- .rubin(lrr_vec, var_lrr)
+
+      tibble(
+        method          = meth,
+        exposure_level  = a,
+        exposure_label  = exposure_labels[a],
+        cif_treated     = mean(cif_a_vec),
+        cif_ref         = mean(cif_ref_vec),
+        att_rd          = rd_pool$est,
+        se_att_rd       = rd_pool$se,
+        att_rd_lower_95 = rd_pool$est - rd_pool$t_crit * rd_pool$se,
+        att_rd_upper_95 = rd_pool$est + rd_pool$t_crit * rd_pool$se,
+        att_rr          = exp(rr_pool$est),
+        att_rr_lower_95 = exp(rr_pool$est - rr_pool$t_crit * rr_pool$se),
+        att_rr_upper_95 = exp(rr_pool$est + rr_pool$t_crit * rr_pool$se),
+        fmi_rd          = rd_pool$fmi,
+        df_barnard      = rd_pool$df,
+        m_imputations   = m,
+        time_horizon    = time_horizon
+      )
+    })
   })
 }
 
@@ -580,9 +689,9 @@ run_iptw_att_analysis <- function(imputed_list,
                                    ref_level       = "0",
                                    all_levels      = c("0", "1", "2"),
                                    time_horizon    = 10,
-                                   trim_quantile   = 0.99,
                                    n_boot          = 500,
                                    seed            = 2024L,
+                                   ph_diagnostics  = TRUE,
                                    covariate_cols  = .fdrug_ps_terms) {
 
   imputed_list <- .as_data_list(imputed_list)
@@ -595,7 +704,7 @@ run_iptw_att_analysis <- function(imputed_list,
     "\n  Estimand     : ATT — effect among initiators",
     "\n  Comparisons  : ",
     paste(treated_levels, "vs", ref_level, collapse = "; "),
-    "\n  Method       : Stabilised IPTW (multinomial PS) +",
+    "\n  Method       : ATT-IPTW (multinomial PS, propensity odds weights) +",
     " doubly-robust cause-specific Cox + AJ CIF",
     "\n  Outcome      : event=1 (NMS death) | Competing: event=2",
     "\n  Horizon      : ", time_horizon, " years",
@@ -618,9 +727,9 @@ run_iptw_att_analysis <- function(imputed_list,
       ref_level      = ref_level,
       all_levels     = all_levels,
       time_horizon   = time_horizon,
-      trim_quantile  = trim_quantile,
       n_boot         = n_boot,
       seed           = seed + i,
+      ph_diagnostics = ph_diagnostics && (i == 1L),  # first imputation only
       covariate_cols = covariate_cols
     )
   }
@@ -637,7 +746,8 @@ run_iptw_att_analysis <- function(imputed_list,
   list(
     pooled             = pooled,
     imputation_results = results_list,
-    imputation_diag    = lapply(results_list, `[[`, "diag")
+    imputation_diag    = lapply(results_list, `[[`, "diag"),
+    ph_diag            = results_list[[1L]]$ph_diag   # cox.zph tables (imp. 1)
   )
 }
 
