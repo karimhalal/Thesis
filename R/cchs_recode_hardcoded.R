@@ -4,6 +4,10 @@ library(cchsflow)
 source(here::here("R", "pumf-mock.R"))
 source(here::here("R", "special_functions.R"))
 
+cchs_2013<-cchs_list$cchs_2013
+cchs_2015<-cchs_list$cchs_2015
+cchs_2017<-cchs_list$cchs_2017
+
 # ── NA helper functions ────────────────────────────────────────────────────────
 is_na_a <- function(x) {
   return(x == 6 | x == 96 | is.na(x) & haven::is_tagged_na(x, "a"))
@@ -222,7 +226,7 @@ cchs2013_2014_h <- cchs_2013 %>%
     ALW_2A7 = case_when(ALW_2A7 == 996 ~ na_a(), ALW_2A7 %in% c(997,998,999) ~ na_b(), TRUE ~ ALW_2A7),
     ALWDWKY = case_when(ALWDWKY == 996 ~ na_a(), ALWDWKY %in% c(997,998,999) ~ na_b(), TRUE ~ ALWDWKY),
 
-    # ── Sociodemographic ────────────────────────────────────────────────────────
+    #Sociodemographic 
     SDCDCGT = labelled(
       case_when(SDCDCGT == 96 ~ na_a(), SDCDCGT %in% c(97,98,99) ~ na_b(), TRUE ~ SDCDCGT),
       labels = c("White" = 1, "Black" = 2, "Korean" = 3, "Filipino" = 4, "Japanese" = 5,
@@ -716,4 +720,27 @@ cchs_all_h <- cchs_all_h %>%
   select(DHH_AGE, DHH_MS, DHH_OWN, DHH_SEX, CCC_031, CCC_051, CCC_061, CCC_071, CCC_091, CCC_101, CCC_121, 
   CCC_131, CCC_151, CCC_171, CCC_280, CCC_290, SMKDSTY_cat5, ALWDWKY, PACDEE, bmi_adj, resp_condition_der, multiple_conditions,
   GEN_01, GENGSWL, GEN_02B, GEN_07, GEN_09, GEN_10, drgdvlac, drgdvyac, race_binary, HUPDPAD, material_deprivation, INCDRRS, INCDRPR, CMH_01K, CMH_01L,
-  rural, SurveyCycle, survdate, survt, event, EDUDR03, FSCDHFS2, ALCDTTM)
+  rural, SurveyCycle, survdate, survt, event, EDUDR03, FSCDHFS2, ALCDTTM, WTS_M)
+
+cchs_all_h <- cchs_all_h %>%
+  mutate(
+    first_drug_class = haven::labelled(
+      sample(c(0L, 1L, 2L), n(), replace = TRUE, prob = c(0.60, 0.25, 0.15)),
+      labels = c("No prescription" = 0L, "Opioid initiated" = 1L, "BZD initiated" = 2L),
+      label  = "First drug class initiated"
+    ),
+    # Follow-up time in years, bounded (0, 10) with mean ~8. Generated as a
+    # Beta(8, 2) draw (mean 0.8) rescaled to the 0-10 year window, mimicking a
+    # datetime difference (e.g. index date to event/censor date) in years.
+    time_to_event = haven::labelled(
+      rbeta(n(), shape1 = 8, shape2 = 2) * 10,
+      label = "Time to event (years)"
+    ),
+    # Competing-risks event indicator: 85% censored (0), 2% event of interest
+    # (1), 13% competing event (2).
+    event1 = haven::labelled(
+      sample(c(0L, 1L, 2L), n(), replace = TRUE, prob = c(0.85, 0.02, 0.13)),
+      labels = c("Censored" = 0L, "Event of interest" = 1L, "Competing event" = 2L),
+      label  = "Event type (competing risks)"
+    )
+  )
